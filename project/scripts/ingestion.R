@@ -88,14 +88,19 @@ ingest_credit_datasets <- function(config, base_dir = "project") {
   raw_dir <- path(base_dir, "data", "raw")
   dir_create(raw_dir)
 
+  # We prioritize monthly SGS series in the main ingestion because they are
+  # fully compatible with long historical windows (e.g., 2012+).
+  # Daily Selic (code 432) is handled as optional and separate to avoid the
+  # BCB API 10-year limit breaking the full pipeline.
+  monthly_series <- c(
+    vehicle_interest_rate = config$sgs_codes$vehicle_interest_rate,
+    vehicle_term_months = config$sgs_codes$vehicle_term_months,
+    housing_interest_rate = config$sgs_codes$housing_interest_rate,
+    housing_term_months = config$sgs_codes$housing_term_months
+  )
+
   series <- rbcb::get_series(
-    c(
-      vehicle_interest_rate = config$sgs_codes$vehicle_interest_rate,
-      vehicle_term_months = config$sgs_codes$vehicle_term_months,
-      housing_interest_rate = config$sgs_codes$housing_interest_rate,
-      housing_term_months = config$sgs_codes$housing_term_months,
-      selic_rate = config$sgs_codes$selic_rate
-    ),
+    monthly_series,
     start_date = config$date_start,
     end_date = Sys.Date()
   ) %>%
@@ -105,10 +110,37 @@ ingest_credit_datasets <- function(config, base_dir = "project") {
       source_url = "https://www.bcb.gov.br"
     )
 
-  credit_file <- path(raw_dir, "credit_and_selic_sgs.csv")
+  credit_file <- path(raw_dir, "credit_sgs_monthly.csv")
   write_csv(series, credit_file)
 
-  list(credit_sgs = credit_file)
+  files <- list(credit_sgs = credit_file)
+
+  include_selic <- isTRUE(config$ingestion$include_optional_selic)
+  has_selic_code <- !is.null(config$sgs_codes$selic_rate)
+
+  if (include_selic && has_selic_code) {
+    # SGS daily series (Selic 432) accepts at most ~10 years per request.
+    # We cap the start date here so Selic can be used for diagnostics without
+    # jeopardizing the core monthly-credit pipeline.
+    selic_start <- max(config$date_start, Sys.Date() - lubridate::years(10))
+
+    selic <- rbcb::get_series(
+      c(selic_rate = config$sgs_codes$selic_rate),
+      start_date = selic_start,
+      end_date = Sys.Date()
+    ) %>%
+      as_tibble() %>%
+      mutate(
+        source_dataset = "BCB SGS via rbcb",
+        source_url = "https://www.bcb.gov.br"
+      )
+
+    selic_file <- path(raw_dir, "selic_sgs_daily_optional.csv")
+    write_csv(selic, selic_file)
+    files$selic_sgs_optional <- selic_file
+  }
+
+  files
 }
 
 ingest_ipca_sidra <- function(config, base_dir = "project") {

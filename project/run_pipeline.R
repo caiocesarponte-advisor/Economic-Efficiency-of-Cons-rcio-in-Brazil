@@ -25,8 +25,10 @@ config <- list(
     vehicle_interest_rate = 25471,
     vehicle_term_months = 20886,
     housing_interest_rate = 25497,
-    housing_term_months = 20912,
-    selic_rate = 432
+    housing_term_months = 20912
+  ),
+  ingestion = list(
+    include_optional_selic = FALSE
   ),
   simulation = list(
     vehicle_value = 80000,
@@ -49,12 +51,12 @@ config <- list(
 safe_run("Setup directories", function() ensure_directories("project"))
 
 consorcio_files <- safe_run("Ingestion - consorcio datasets", function() ingest_consorcio_datasets(config))
-credit_files <- safe_run("Ingestion - credit and selic (SGS)", function() ingest_credit_datasets(config))
+credit_files <- safe_run("Ingestion - credit (SGS monthly)", function() ingest_credit_datasets(config))
 ipca_files <- safe_run("Ingestion - SIDRA IPCA", function() ingest_ipca_sidra(config))
 manual_file <- safe_run("Ingestion - manual panorama template", function() create_manual_panorama_template())
 
 consorcio_processed <- safe_run("Processing - consorcio", function() process_consorcio_raw(consorcio_files, config))
-credit_processed <- safe_run("Processing - credit and selic", function() process_credit_and_selic_raw(credit_files, config))
+credit_processed <- safe_run("Processing - credit (selic optional)", function() process_credit_and_selic_raw(credit_files, config))
 ipca_processed <- safe_run("Processing - IPCA", function() process_ipca_raw(ipca_files, config))
 manual_panorama <- safe_run("Processing - manual panorama", function() process_manual_panorama(manual_file))
 
