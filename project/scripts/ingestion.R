@@ -88,54 +88,59 @@ ingest_credit_datasets <- function(config, base_dir = "project") {
   raw_dir <- path(base_dir, "data", "raw")
   dir_create(raw_dir)
 
-  normalize_sgs_output <- function(series_raw) {
-    # rbcb::get_series can return different shapes depending on package
-    # versions and query options (e.g., wide data.frame or named list of
-    # two-column tibbles). We standardize to a single tibble with date + one
-    # column per named series.
-    if (is.list(series_raw) && !inherits(series_raw, "data.frame")) {
-      if (length(series_raw) == 0) {
-        return(tibble(date = as_date(character())))
-      }
+  fetch_sgs_series <- function(series_code, series_name, start_date, end_date) {
+    sgs_url <- sprintf(
+      "https://api.bcb.gov.br/dados/serie/bcdata.sgs.%s/dados",
+      series_code
+    )
 
-      list_names <- names(series_raw)
-      if (is.null(list_names) || any(list_names == "")) {
-        stop("rbcb::get_series returned an unnamed list; provide named SGS codes.")
-      }
+    response <- request(sgs_url) %>%
+      req_url_query(
+        formato = "csv",
+        dataInicial = format(start_date, "%d/%m/%Y"),
+        dataFinal = format(end_date, "%d/%m/%Y")
+      ) %>%
+      req_perform()
 
-      return(
-        imap(series_raw, function(df, series_name) {
-          df <- as_tibble(df)
-          value_col <- setdiff(names(df), "date")[1]
-          if (is.na(value_col)) {
-            stop(sprintf("Could not identify value column for SGS series '%s'.", series_name))
-          }
-
-          df %>%
-            transmute(
-              date = as_date(date),
-              !!series_name := as.numeric(.data[[value_col]])
-            )
-        }) %>%
-          reduce(full_join, by = "date") %>%
-          arrange(date)
+    series_raw <- response %>%
+      resp_body_string() %>%
+      I() %>%
+      read_csv(
+        col_types = cols(
+          data = col_character(),
+          valor = col_character()
+        ),
+        locale = locale(decimal_mark = ","),
+        show_col_types = FALSE
       )
+
+    if (!all(c("data", "valor") %in% names(series_raw))) {
+      stop(sprintf(
+        "Unexpected SGS response format for code %s (%s).",
+        series_code,
+        series_name
+      ))
     }
 
-    series_df <- as.data.frame(series_raw)
+    series_raw %>%
+      transmute(
+        date = dmy(data),
+        !!series_name := parse_number(valor, locale = locale(decimal_mark = ","))
+      ) %>%
+      filter(!is.na(date))
+  }
 
-    if ("date" %in% names(series_df)) {
-      series_df$date <- as_date(series_df$date)
-    } else if (!is.null(rownames(series_df))) {
-      parsed_dates <- suppressWarnings(as_date(rownames(series_df)))
-      if (!all(is.na(parsed_dates))) {
-        series_df <- cbind(date = rownames(series_df), series_df)
-        rownames(series_df) <- NULL
-        series_df$date <- as_date(series_df$date)
-      }
-    }
-
-    as_tibble(series_df)
+  fetch_sgs_bundle <- function(series_map, start_date, end_date) {
+    imap(series_map, function(series_code, series_name) {
+      fetch_sgs_series(
+        series_code = series_code,
+        series_name = series_name,
+        start_date = start_date,
+        end_date = end_date
+      )
+    }) %>%
+      reduce(full_join, by = "date") %>%
+      arrange(date)
   }
 
   # We prioritize monthly SGS series in the main ingestion because they are
@@ -149,15 +154,14 @@ ingest_credit_datasets <- function(config, base_dir = "project") {
     housing_term_months = config$sgs_codes$housing_term_months
   )
 
-  series <- rbcb::get_series(
-    monthly_series,
+  series <- fetch_sgs_bundle(
+    series_map = monthly_series,
     start_date = config$date_start,
     end_date = Sys.Date()
   ) %>%
-    normalize_sgs_output() %>%
     mutate(
-      source_dataset = "BCB SGS via rbcb",
-      source_url = "https://www.bcb.gov.br"
+      source_dataset = "BCB SGS API",
+      source_url = "https://api.bcb.gov.br"
     )
 
   credit_file <- path(raw_dir, "credit_sgs_monthly.csv")
@@ -174,15 +178,14 @@ ingest_credit_datasets <- function(config, base_dir = "project") {
     # jeopardizing the core monthly-credit pipeline.
     selic_start <- max(config$date_start, Sys.Date() - lubridate::years(10))
 
-    selic <- rbcb::get_series(
-      c(selic_rate = config$sgs_codes$selic_rate),
+    selic <- fetch_sgs_bundle(
+      series_map = c(selic_rate = config$sgs_codes$selic_rate),
       start_date = selic_start,
       end_date = Sys.Date()
     ) %>%
-      normalize_sgs_output() %>%
       mutate(
-        source_dataset = "BCB SGS via rbcb",
-        source_url = "https://www.bcb.gov.br"
+        source_dataset = "BCB SGS API",
+        source_url = "https://api.bcb.gov.br"
       )
 
     selic_file <- path(raw_dir, "selic_sgs_daily_optional.csv")
