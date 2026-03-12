@@ -17,15 +17,22 @@ build_annual_consorcio_summary <- function(consorcio_processed, config) {
       return(clean_numeric(df[[matched_col]]))
     }
 
-    excluded_cols <- c(
+    excluded_patterns <- c(
       "date", "data", "periodo", "mes", "month", "ano", "year",
-      "tipo", "segmento", "categoria", "bem", "fonte", "source"
+      "tipo", "segmento", "categoria", "bem", "fonte", "source",
+      "codigo", "code", "id"
     )
 
-    fallback_col <- df %>%
+    numeric_candidates <- df %>%
       mutate(across(everything(), clean_numeric)) %>%
-      select(-any_of(excluded_cols)) %>%
-      names() %>%
+      select(-matches(str_c(excluded_patterns, collapse = "|"), ignore.case = TRUE))
+
+    fallback_col <- numeric_candidates %>%
+      summarise(across(everything(), ~sum(!is.na(.x)))) %>%
+      pivot_longer(everything(), names_to = "col", values_to = "non_na") %>%
+      arrange(desc(non_na)) %>%
+      filter(non_na > 0) %>%
+      pull(col) %>%
       first()
 
     if (is.na(fallback_col)) {
@@ -38,9 +45,19 @@ build_annual_consorcio_summary <- function(consorcio_processed, config) {
   }
 
   parse_date_column <- function(df) {
-    date_col <- c("date", "data", "periodo", "mes", "month", "ano", "year") %>%
-      intersect(names(df)) %>%
-      first()
+    canonical_date_cols <- c(
+      "date", "data", "periodo", "mes", "month", "ano", "year",
+      "data_base", "data_referencia", "periodo_referencia", "mes_referencia"
+    )
+
+    date_col <- canonical_date_cols[canonical_date_cols %in% names(df)][1]
+
+    if (is.na(date_col)) {
+      date_col <- names(df) %>%
+        keep(~str_detect(.x, regex("date|data|periodo|mes|month|ano|year", ignore_case = TRUE))) %>%
+        discard(~str_detect(.x, regex("valor|value|quant|qtd|indice|taxa|rate", ignore_case = TRUE))) %>%
+        first()
+    }
 
     if (is.na(date_col)) {
       return(rep(as_date(NA), nrow(df)))
