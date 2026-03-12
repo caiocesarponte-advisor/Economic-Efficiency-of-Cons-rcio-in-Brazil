@@ -9,6 +9,21 @@ future_value_annuity_payment <- function(target_value, monthly_rate, n_months) {
 }
 
 build_annual_consorcio_summary <- function(consorcio_processed, config) {
+  stringify_scalar <- function(value) {
+    if (is.null(value) || length(value) == 0) return(NA_character_)
+    if (is.language(value) || is.expression(value)) return(paste(deparse(value), collapse = " "))
+    if (is.list(value)) return(paste(map_chr(value, stringify_scalar), collapse = " "))
+    paste(as.character(value), collapse = " ")
+  }
+
+  as_character_vector <- function(x) {
+    if (is.atomic(x) && !is.list(x) && !is.expression(x)) {
+      return(as.character(x))
+    }
+
+    map_chr(seq_along(x), ~stringify_scalar(x[[.x]]))
+  }
+
   pick_first_column <- function(df, candidates, table_label) {
     matched_col <- candidates[candidates %in% names(df)][1]
 
@@ -24,7 +39,7 @@ build_annual_consorcio_summary <- function(consorcio_processed, config) {
     )
 
     numeric_candidates <- df %>%
-      mutate(across(everything(), clean_numeric)) %>%
+      mutate(across(everything(), ~clean_numeric(as_character_vector(.x)))) %>%
       select(-matches(str_c(excluded_patterns, collapse = "|"), ignore.case = TRUE))
 
     fallback_col <- numeric_candidates %>%
@@ -69,13 +84,7 @@ build_annual_consorcio_summary <- function(consorcio_processed, config) {
       return(as_date(raw_date))
     }
 
-    stringify_scalar <- function(value) {
-      if (is.null(value) || length(value) == 0) return(NA_character_)
-      if (is.language(value) || is.expression(value)) return(paste(deparse(value), collapse = " "))
-      paste(as.character(value), collapse = " ")
-    }
-
-    raw_date <- as.list(raw_date) %>% map_chr(stringify_scalar)
+    raw_date <- as_character_vector(raw_date)
 
     parsed_date <- suppressWarnings(
       parse_date_time(
@@ -116,7 +125,7 @@ build_annual_consorcio_summary <- function(consorcio_processed, config) {
   active <- consorcio_processed$active %>%
     mutate(
       date = active_date,
-      Year = year(date),
+      Year = suppressWarnings(as.integer(year(date))),
       ActiveQuotas = pick_first_column(
         ., 
         c("quantidade", "valor", "total", "n_cotas_ativas", "quantidade_cotas_ativas"),
@@ -134,7 +143,7 @@ build_annual_consorcio_summary <- function(consorcio_processed, config) {
   exclusion <- consorcio_processed$exclusion_index %>%
     mutate(
       date = exclusion_date,
-      Year = year(date),
+      Year = suppressWarnings(as.integer(year(date))),
       ExclusionRate = pick_first_column(
         ., 
         c("indice", "valor", "taxa", "indice_exclusao", "indice_de_exclusao"),
