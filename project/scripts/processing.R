@@ -20,13 +20,14 @@ process_credit_and_selic_raw <- function(file_paths, config) {
   data <- read_csv_safe(file_paths$credit_sgs) %>%
     clean_names()
 
+  # Selic is optional in this project stage because daily SGS windows can
+  # exceed BCB API limits. Monthly credit series remain mandatory.
   required_columns <- c(
     "date",
     "vehicle_interest_rate",
     "vehicle_term_months",
     "housing_interest_rate",
-    "housing_term_months",
-    "selic_rate"
+    "housing_term_months"
   )
 
   missing_columns <- setdiff(required_columns, names(data))
@@ -41,7 +42,7 @@ process_credit_and_selic_raw <- function(file_paths, config) {
     mutate(
       date = as_date(date),
       across(
-        c(vehicle_interest_rate, vehicle_term_months, housing_interest_rate, housing_term_months, selic_rate),
+        any_of(c("vehicle_interest_rate", "vehicle_term_months", "housing_interest_rate", "housing_term_months", "selic_rate")),
         as.numeric
       ),
       source_dataset = "BCB SGS",
