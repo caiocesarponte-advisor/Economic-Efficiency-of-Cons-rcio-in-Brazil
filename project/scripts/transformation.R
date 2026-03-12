@@ -111,9 +111,11 @@ build_annual_consorcio_summary <- function(consorcio_processed, config) {
     df
   }
 
+  active_date <- parse_date_column(consorcio_processed$active)
+
   active <- consorcio_processed$active %>%
     mutate(
-      date = parse_date_column(.),
+      date = active_date,
       Year = year(date),
       ActiveQuotas = pick_first_column(
         ., 
@@ -127,9 +129,11 @@ build_annual_consorcio_summary <- function(consorcio_processed, config) {
     mutate(ActiveQuotas = if_else(is.nan(ActiveQuotas), NA_real_, ActiveQuotas)) %>%
     validate_for_plot("active_quotas", "ActiveQuotas")
 
+  exclusion_date <- parse_date_column(consorcio_processed$exclusion_index)
+
   exclusion <- consorcio_processed$exclusion_index %>%
     mutate(
-      date = parse_date_column(.),
+      date = exclusion_date,
       Year = year(date),
       ExclusionRate = pick_first_column(
         ., 
