@@ -65,22 +65,25 @@ build_annual_consorcio_summary <- function(consorcio_processed, config) {
 
     raw_date <- df[[date_col]]
 
-    if (is.list(raw_date)) {
-      raw_date <- map_chr(raw_date, ~paste(as.character(.x), collapse = " "))
-    }
-
     if (inherits(raw_date, "Date")) {
       return(as_date(raw_date))
     }
 
-    raw_date <- as.character(raw_date)
+    stringify_scalar <- function(value) {
+      if (is.null(value) || length(value) == 0) return(NA_character_)
+      if (is.language(value) || is.expression(value)) return(paste(deparse(value), collapse = " "))
+      paste(as.character(value), collapse = " ")
+    }
+
+    raw_date <- as.list(raw_date) %>% map_chr(stringify_scalar)
 
     parsed_date <- suppressWarnings(
-      coalesce(
-        dmy(raw_date, quiet = TRUE) %>% as_date(),
-        ymd(raw_date, quiet = TRUE) %>% as_date(),
-        ym(raw_date, quiet = TRUE) %>% as_date()
-      )
+      parse_date_time(
+        raw_date,
+        orders = c("dmy", "ymd", "ym", "Y"),
+        quiet = TRUE
+      ) %>%
+        as_date()
     )
 
     year_only <- suppressWarnings(parse_integer(str_extract(raw_date, "\\d{4}")))
