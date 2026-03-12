@@ -102,30 +102,48 @@ ingest_credit_datasets <- function(config, base_dir = "project") {
       ) %>%
       req_perform()
 
-    series_raw <- response %>%
-      resp_body_string() %>%
-      I() %>%
-      read_csv(
-        col_types = cols(
-          data = col_character(),
-          valor = col_character()
-        ),
-        locale = locale(decimal_mark = ","),
-        show_col_types = FALSE
-      )
+    payload <- response %>% resp_body_string()
 
-    if (!all(c("data", "valor") %in% names(series_raw))) {
-      stop(sprintf(
-        "Unexpected SGS response format for code %s (%s).",
+    parse_sgs_payload <- function(raw_payload, delimiter) {
+      read_delim(
+        file = I(raw_payload),
+        delim = delimiter,
+        col_types = cols(.default = col_character()),
+        locale = locale(decimal_mark = ","),
+        show_col_types = FALSE,
+        trim_ws = TRUE
+      )
+    }
+
+    series_raw <- suppressWarnings(parse_sgs_payload(payload, ";"))
+
+    if (!all(c("data", "valor") %in% make_clean_names(names(series_raw)))) {
+      series_raw <- suppressWarnings(parse_sgs_payload(payload, ","))
+    }
+
+    normalized_names <- make_clean_names(names(series_raw))
+    names(series_raw) <- normalized_names
+
+    date_col <- names(series_raw)[names(series_raw) %in% c("data", "date")][1]
+    value_col <- names(series_raw)[names(series_raw) %in% c("valor", "value")][1]
+
+    if (is.na(date_col) || is.na(value_col)) {
+      warning(sprintf(
+        "Unexpected SGS response format for code %s (%s). Returning empty series.",
         series_code,
         series_name
+      ))
+
+      return(tibble(
+        date = as.Date(character()),
+        !!series_name := numeric()
       ))
     }
 
     series_raw %>%
       transmute(
-        date = dmy(data),
-        !!series_name := parse_number(valor, locale = locale(decimal_mark = ","))
+        date = dmy(.data[[date_col]]),
+        !!series_name := parse_number(.data[[value_col]], locale = locale(decimal_mark = ","))
       ) %>%
       filter(!is.na(date))
   }
