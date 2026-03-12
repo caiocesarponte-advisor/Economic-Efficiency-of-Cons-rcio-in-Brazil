@@ -9,14 +9,36 @@ future_value_annuity_payment <- function(target_value, monthly_rate, n_months) {
 }
 
 build_annual_consorcio_summary <- function(consorcio_processed, config) {
-  pick_first_column <- function(df, candidates) {
-    col <- candidates[candidates %in% names(df)][1]
-    if (is.na(col)) return(rep(NA_real_, nrow(df)))
-    clean_numeric(df[[col]])
+  pick_first_column <- function(df, candidates, table_label) {
+    matched_col <- candidates[candidates %in% names(df)][1]
+
+    if (!is.na(matched_col)) {
+      log_info(sprintf("[%s] Using mapped value column: %s", table_label, matched_col))
+      return(clean_numeric(df[[matched_col]]))
+    }
+
+    excluded_cols <- c(
+      "date", "data", "periodo", "mes", "month", "ano", "year",
+      "tipo", "segmento", "categoria", "bem", "fonte", "source"
+    )
+
+    fallback_col <- df %>%
+      mutate(across(everything(), clean_numeric)) %>%
+      select(-any_of(excluded_cols)) %>%
+      names() %>%
+      first()
+
+    if (is.na(fallback_col)) {
+      log_info(sprintf("[%s] No numeric value column found.", table_label))
+      return(rep(NA_real_, nrow(df)))
+    }
+
+    log_info(sprintf("[%s] Using fallback value column: %s", table_label, fallback_col))
+    clean_numeric(df[[fallback_col]])
   }
 
   parse_date_column <- function(df) {
-    date_col <- c("date", "data", "periodo", "mes", "month") %>%
+    date_col <- c("date", "data", "periodo", "mes", "month", "ano", "year") %>%
       intersect(names(df)) %>%
       first()
 
@@ -32,37 +54,74 @@ build_annual_consorcio_summary <- function(consorcio_processed, config) {
 
     raw_date <- as.character(raw_date)
 
-    suppressWarnings(
+    parsed_date <- suppressWarnings(
       coalesce(
         dmy(raw_date) %>% as_date(),
         ymd(raw_date) %>% as_date(),
-        parse_date_time(raw_date, orders = c("Ym", "Y-m")) %>% as_date()
+        parse_date_time(raw_date, orders = c("Ym", "Y-m", "Y")) %>% as_date()
       )
     )
+
+    year_only <- suppressWarnings(parse_integer(raw_date))
+    parsed_date <- coalesce(parsed_date, make_date(year_only, 1, 1))
+
+    parsed_date
+  }
+
+  validate_for_plot <- function(df, table_label, value_col) {
+    log_info(sprintf("[%s] Rows after annual aggregation: %s", table_label, nrow(df)))
+    log_info(sprintf("[%s] Columns available: %s", table_label, paste(names(df), collapse = ", ")))
+
+    if (nrow(df) == 0) {
+      stop(sprintf("[%s] Annual summary is empty after processing.", table_label))
+    }
+
+    na_year <- sum(is.na(df$Year))
+    na_value <- sum(is.na(df[[value_col]]))
+    log_info(sprintf("[%s] NA count - Year: %s | %s: %s", table_label, na_year, value_col, na_value))
+
+    if (all(is.na(df[[value_col]]))) {
+      stop(sprintf("[%s] Column '%s' has only NA values.", table_label, value_col))
+    }
+
+    df
   }
 
   active <- consorcio_processed$active %>%
     mutate(
       date = parse_date_column(.),
-      year = year(date),
-      active_quotas_total = pick_first_column(., c("quantidade", "valor", "total", "n_cotas_ativas"))
+      Year = year(date),
+      ActiveQuotas = pick_first_column(
+        ., 
+        c("quantidade", "valor", "total", "n_cotas_ativas", "quantidade_cotas_ativas"),
+        table_label = "active_quotas"
+      )
     ) %>%
-    filter(!is.na(year)) %>%
-    group_by(year) %>%
-    summarise(active_quotas_total = mean(active_quotas_total, na.rm = TRUE), .groups = "drop")
+    filter(!is.na(Year)) %>%
+    group_by(Year) %>%
+    summarise(ActiveQuotas = mean(ActiveQuotas, na.rm = TRUE), .groups = "drop") %>%
+    mutate(ActiveQuotas = if_else(is.nan(ActiveQuotas), NA_real_, ActiveQuotas)) %>%
+    validate_for_plot("active_quotas", "ActiveQuotas")
 
   exclusion <- consorcio_processed$exclusion_index %>%
     mutate(
       date = parse_date_column(.),
-      year = year(date),
-      exclusion_rate = pick_first_column(., c("indice", "valor", "taxa", "indice_exclusao")) / 100
+      Year = year(date),
+      ExclusionRate = pick_first_column(
+        ., 
+        c("indice", "valor", "taxa", "indice_exclusao", "indice_de_exclusao"),
+        table_label = "exclusion_index"
+      ) / 100
     ) %>%
-    filter(!is.na(year)) %>%
-    group_by(year) %>%
-    summarise(exclusion_rate = mean(exclusion_rate, na.rm = TRUE), .groups = "drop")
+    filter(!is.na(Year)) %>%
+    group_by(Year) %>%
+    summarise(ExclusionRate = mean(ExclusionRate, na.rm = TRUE), .groups = "drop") %>%
+    mutate(ExclusionRate = if_else(is.nan(ExclusionRate), NA_real_, ExclusionRate)) %>%
+    validate_for_plot("exclusion_index", "ExclusionRate")
 
   active %>%
-    left_join(exclusion, by = "year")
+    left_join(exclusion, by = "Year") %>%
+    arrange(Year)
 }
 
 build_monthly_credit_parameters <- function(credit_processed, config) {
