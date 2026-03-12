@@ -88,6 +88,56 @@ ingest_credit_datasets <- function(config, base_dir = "project") {
   raw_dir <- path(base_dir, "data", "raw")
   dir_create(raw_dir)
 
+  normalize_sgs_output <- function(series_raw) {
+    # rbcb::get_series can return different shapes depending on package
+    # versions and query options (e.g., wide data.frame or named list of
+    # two-column tibbles). We standardize to a single tibble with date + one
+    # column per named series.
+    if (is.list(series_raw) && !inherits(series_raw, "data.frame")) {
+      if (length(series_raw) == 0) {
+        return(tibble(date = as_date(character())))
+      }
+
+      list_names <- names(series_raw)
+      if (is.null(list_names) || any(list_names == "")) {
+        stop("rbcb::get_series returned an unnamed list; provide named SGS codes.")
+      }
+
+      return(
+        imap(series_raw, function(df, series_name) {
+          df <- as_tibble(df)
+          value_col <- setdiff(names(df), "date")[1]
+          if (is.na(value_col)) {
+            stop(sprintf("Could not identify value column for SGS series '%s'.", series_name))
+          }
+
+          df %>%
+            transmute(
+              date = as_date(date),
+              !!series_name := as.numeric(.data[[value_col]])
+            )
+        }) %>%
+          reduce(full_join, by = "date") %>%
+          arrange(date)
+      )
+    }
+
+    series_df <- as.data.frame(series_raw)
+
+    if ("date" %in% names(series_df)) {
+      series_df$date <- as_date(series_df$date)
+    } else if (!is.null(rownames(series_df))) {
+      parsed_dates <- suppressWarnings(as_date(rownames(series_df)))
+      if (!all(is.na(parsed_dates))) {
+        series_df <- cbind(date = rownames(series_df), series_df)
+        rownames(series_df) <- NULL
+        series_df$date <- as_date(series_df$date)
+      }
+    }
+
+    as_tibble(series_df)
+  }
+
   # We prioritize monthly SGS series in the main ingestion because they are
   # fully compatible with long historical windows (e.g., 2012+).
   # Daily Selic (code 432) is handled as optional and separate to avoid the
@@ -104,7 +154,7 @@ ingest_credit_datasets <- function(config, base_dir = "project") {
     start_date = config$date_start,
     end_date = Sys.Date()
   ) %>%
-    as_tibble() %>%
+    normalize_sgs_output() %>%
     mutate(
       source_dataset = "BCB SGS via rbcb",
       source_url = "https://www.bcb.gov.br"
@@ -129,7 +179,7 @@ ingest_credit_datasets <- function(config, base_dir = "project") {
       start_date = selic_start,
       end_date = Sys.Date()
     ) %>%
-      as_tibble() %>%
+      normalize_sgs_output() %>%
       mutate(
         source_dataset = "BCB SGS via rbcb",
         source_url = "https://www.bcb.gov.br"
