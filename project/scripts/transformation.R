@@ -15,9 +15,35 @@ build_annual_consorcio_summary <- function(consorcio_processed, config) {
     clean_numeric(df[[col]])
   }
 
+  parse_date_column <- function(df) {
+    date_col <- c("date", "data", "periodo", "mes", "month") %>%
+      intersect(names(df)) %>%
+      first()
+
+    if (is.na(date_col)) {
+      return(rep(as_date(NA), nrow(df)))
+    }
+
+    raw_date <- df[[date_col]]
+
+    if (inherits(raw_date, "Date")) {
+      return(as_date(raw_date))
+    }
+
+    raw_date <- as.character(raw_date)
+
+    suppressWarnings(
+      coalesce(
+        dmy(raw_date) %>% as_date(),
+        ymd(raw_date) %>% as_date(),
+        parse_date_time(raw_date, orders = c("Ym", "Y-m")) %>% as_date()
+      )
+    )
+  }
+
   active <- consorcio_processed$active %>%
     mutate(
-      date = suppressWarnings(dmy(date) %>% as_date()),
+      date = parse_date_column(.),
       year = year(date),
       active_quotas_total = pick_first_column(., c("quantidade", "valor", "total", "n_cotas_ativas"))
     ) %>%
@@ -27,7 +53,7 @@ build_annual_consorcio_summary <- function(consorcio_processed, config) {
 
   exclusion <- consorcio_processed$exclusion_index %>%
     mutate(
-      date = suppressWarnings(dmy(date) %>% as_date()),
+      date = parse_date_column(.),
       year = year(date),
       exclusion_rate = pick_first_column(., c("indice", "valor", "taxa", "indice_exclusao")) / 100
     ) %>%
