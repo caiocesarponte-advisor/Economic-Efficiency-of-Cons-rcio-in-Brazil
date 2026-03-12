@@ -17,8 +17,10 @@ suppressPackageStartupMessages({
   library(sidrar)
 })
 
-log_info <- function(message) {
-  cat(sprintf("[%s] %s\n", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), message))
+log_info <- function(message, log_file = path("project", "logs", "pipeline.log")) {
+  formatted_message <- sprintf("[%s] %s", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), message)
+  cat(formatted_message, "\n")
+  write_lines(formatted_message, log_file, append = TRUE)
 }
 
 safe_run <- function(step_name, fn) {
@@ -43,14 +45,19 @@ ensure_directories <- function(base_dir = "project") {
     path(base_dir, "scripts"),
     path(base_dir, "figures"),
     path(base_dir, "tables"),
-    path(base_dir, "logs")
+    path(base_dir, "logs"),
+    path(base_dir, "sections")
   )
   walk(dirs, dir_create)
 }
 
 clean_numeric <- function(x) {
   if (is.numeric(x)) return(x)
+
   x %>%
+    as.character() %>%
+    str_trim() %>%
+    na_if("") %>%
     str_replace_all("\\.", "") %>%
     str_replace_all(",", ".") %>%
     parse_number(locale = locale(decimal_mark = "."))
@@ -61,7 +68,15 @@ save_dual_plot <- function(plot_obj, output_stub, width = 9, height = 5, dpi = 3
   pdf_file <- paste0(output_stub, ".pdf")
 
   ggsave(filename = png_file, plot = plot_obj, width = width, height = height, dpi = dpi)
-  ggsave(filename = pdf_file, plot = plot_obj, width = width, height = height, device = cairo_pdf)
+
+  tryCatch(
+    {
+      ggsave(filename = pdf_file, plot = plot_obj, width = width, height = height, device = cairo_pdf)
+    },
+    error = function(e) {
+      ggsave(filename = pdf_file, plot = plot_obj, width = width, height = height)
+    }
+  )
 
   invisible(list(png = png_file, pdf = pdf_file))
 }

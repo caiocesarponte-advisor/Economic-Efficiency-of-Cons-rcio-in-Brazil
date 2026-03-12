@@ -1,0 +1,7 @@
+[2026-03-10 17:12:41] Starting step: Setup directories
+[2026-03-10 17:12:41] Completed step: Setup directories
+[2026-03-10 17:12:41] Starting step: Ingestion - consorcio datasets
+[2026-03-10 17:12:45] ERROR in Ingestion - consorcio datasets: HTTP 404 Not Found.
+[2026-03-10 17:29:06] Downloading CKAN dataset from: https://api.bcb.gov.br/dados/serie/bcdata.sgs.27459/dados?formato=csv
+[2026-03-10 17:29:07] Downloading CKAN dataset from: https://api.bcb.gov.br/dados/serie/bcdata.sgs.27487/dados?formato=csv
+[2026-03-10 17:29:08] Downloading CKAN dataset from: https://api.bcb.gov.br/dados/serie/bcdata.sgs.27488/dados?formato=csv

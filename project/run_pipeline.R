@@ -3,11 +3,11 @@
 # Main reproducible pipeline for comparing economic efficiency of:
 # (1) consortium, (2) bank financing, and (3) autonomous savings.
 
-source("project/scripts/utils.R")
-source("project/scripts/ingestion.R")
-source("project/scripts/processing.R")
-source("project/scripts/transformation.R")
-source("project/scripts/visualization.R")
+source(here::here("project", "scripts", "utils.R"))
+source(here::here("project", "scripts", "ingestion.R"))
+source(here::here("project", "scripts", "processing.R"))
+source(here::here("project", "scripts", "transformation.R"))
+source(here::here("project", "scripts", "visualization.R"))
 
 config <- list(
   date_start = as.Date("2012-01-01"),
@@ -17,12 +17,6 @@ config <- list(
     active_quotas_url = "https://dadosabertos.bcb.gov.br/dataset/27459-cotas-ativas-por-tipo-de-administradora---total",
     excluded_quotas_url = "https://dadosabertos.bcb.gov.br/dataset/27487-quantidade-de-cotas-excluidas-por-tipo-de-bem---consolidado",
     exclusion_index_url = "https://dadosabertos.bcb.gov.br/dataset/27488-indice-de-exclusao-por-tipo-de-bem---consolidado"
-  ),
-  financing = list(
-    vehicle_interest_url = "https://dadosabertos.bcb.gov.br/dataset/25471-taxa-media-mensal-de-juros-das-operacoes-de-credito-com-recursos-livres---pessoas-fisicas---a",
-    vehicle_term_url = "https://dadosabertos.bcb.gov.br/dataset/20886-prazo-medio-das-concessoes-de-credito-com-recursos-livres---pessoas-fisicas---aquisicao-de-ve",
-    housing_interest_url = "https://dadosabertos.bcb.gov.br/dataset/25497-taxa-media-mensal-de-juros-das-operacoes-de-credito-com-recursos-direcionados---pessoas-fisic",
-    housing_term_url = "https://dadosabertos.bcb.gov.br/dataset/20912-prazo-medio-das-concessoes-de-credito-com-recursos-direcionados---pessoas-fisicas---financiam"
   ),
   inflation = list(
     ipca_sidra_url = "https://sidra.ibge.gov.br/tabela/1737"
@@ -68,12 +62,21 @@ annual_consorcio_summary <- safe_run("Transformation - annual consorcio summary"
 monthly_credit_parameters <- safe_run("Transformation - monthly credit parameters", function() build_monthly_credit_parameters(credit_processed, config))
 macro_parameters <- safe_run("Transformation - macro parameters", function() build_macro_parameters(credit_processed, ipca_processed, config))
 
-simulation_outputs <- safe_run("Simulation", function() run_simulations(monthly_credit_parameters, macro_parameters, manual_panorama, config$simulation))
+simulation_outputs <- safe_run("Simulation", function() {
+  run_simulations(
+    monthly_credit_parameters = monthly_credit_parameters,
+    manual_panorama = manual_panorama,
+    params = config$simulation
+  )
+})
 
 safe_run("Storage - processed tables", function() {
+  fs::dir_create("project/data/processed")
+
   write_csv(annual_consorcio_summary, "project/data/processed/annual_consorcio_summary.csv")
   write_csv(monthly_credit_parameters, "project/data/processed/monthly_credit_parameters.csv")
   write_csv(macro_parameters, "project/data/processed/macro_parameters.csv")
+  write_csv(manual_panorama, "project/data/processed/manual_panorama_series.csv")
   write_csv(simulation_outputs$simulation_results, "project/data/processed/simulation_results.csv")
   write_csv(simulation_outputs$simulation_cashflows, "project/data/processed/simulation_cashflows.csv")
   TRUE
@@ -84,7 +87,8 @@ safe_run("Visualization", function() {
     annual_consorcio_summary = annual_consorcio_summary,
     monthly_credit_parameters = monthly_credit_parameters,
     manual_panorama_series = manual_panorama,
-    simulation_results = simulation_outputs$simulation_results
+    simulation_results = simulation_outputs$simulation_results,
+    base_dir = "project"
   )
   TRUE
 })

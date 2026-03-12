@@ -1,37 +1,63 @@
 # Ingestion functions: data download and initial raw persistence.
 
-extract_dataset_id <- function(dataset_url) {
-  id_match <- str_match(dataset_url, "dataset/([0-9]+)-")
-  if (is.na(id_match[1, 2])) {
-    stop(sprintf("Could not extract dataset id from URL: %s", dataset_url))
+extract_dataset_slug <- function(dataset_url) {
+  slug_match <- str_match(dataset_url, "dataset/([^/?#]+)")
+  if (is.na(slug_match[1, 2])) {
+    stop(sprintf("Could not extract dataset slug from URL: %s", dataset_url))
   }
-  id_match[1, 2]
+  slug_match[1, 2]
 }
 
 get_ckan_resource_url <- function(dataset_url) {
-  dataset_id <- extract_dataset_id(dataset_url)
-  api_url <- sprintf("https://dadosabertos.bcb.gov.br/api/3/action/package_show?id=%s", dataset_id)
+  dataset_slug <- extract_dataset_slug(dataset_url)
+  api_url <- sprintf(
+    "https://dadosabertos.bcb.gov.br/api/3/action/package_show?id=%s",
+    dataset_slug
+  )
 
   response <- request(api_url) %>% req_perform()
   payload <- response %>% resp_body_json(simplifyVector = TRUE)
 
   if (!isTRUE(payload$success)) {
-    stop(sprintf("BCB CKAN API returned unsuccessful response for id %s", dataset_id))
+    stop(sprintf(
+      "BCB CKAN API returned unsuccessful response for dataset '%s'",
+      dataset_slug
+    ))
   }
 
-  resources <- payload$result$resources
-  csv_resources <- resources %>%
+  resources <- payload$result$resources %>%
     as_tibble() %>%
-    filter(str_to_lower(format) %in% c("csv", "txt") | str_detect(str_to_lower(url), "\\.csv"))
+    mutate(
+      format = as.character(format),
+      url = as.character(url),
+      name = as.character(name),
+      format_lower = str_to_lower(coalesce(format, "")),
+      url_lower = str_to_lower(coalesce(url, "")),
+      name_lower = str_to_lower(coalesce(name, ""))
+    ) %>%
+    filter(format_lower %in% c("csv", "txt") | str_detect(url_lower, "\\.csv"))
 
-  if (nrow(csv_resources) == 0) {
-    stop(sprintf("No CSV/TXT resource found in dataset id %s", dataset_id))
+  if (nrow(resources) == 0) {
+    stop(sprintf(
+      "No CSV/TXT resource found in dataset '%s'",
+      dataset_slug
+    ))
   }
 
-  csv_resources$url[[1]]
+  resources %>%
+    mutate(priority = case_when(
+      format_lower == "csv" ~ 1,
+      str_detect(url_lower, "\\.csv") ~ 2,
+      format_lower == "txt" ~ 3,
+      TRUE ~ 99
+    )) %>%
+    arrange(priority) %>%
+    pull(url) %>%
+    .[[1]]
 }
 
 download_ckan_dataset <- function(dataset_url, output_file) {
+  dir_create(path_dir(output_file))
   direct_url <- get_ckan_resource_url(dataset_url)
   log_info(sprintf("Downloading CKAN dataset from: %s", direct_url))
 
@@ -43,6 +69,7 @@ download_ckan_dataset <- function(dataset_url, output_file) {
 
 ingest_consorcio_datasets <- function(config, base_dir = "project") {
   raw_dir <- path(base_dir, "data", "raw")
+  dir_create(raw_dir)
 
   files <- list(
     active_quotas = path(raw_dir, "consorcio_active_quotas.csv"),
@@ -58,7 +85,9 @@ ingest_consorcio_datasets <- function(config, base_dir = "project") {
 }
 
 ingest_credit_datasets <- function(config, base_dir = "project") {
-  # Prefer SGS via rbcb::get_series where dataset IDs correspond to SGS series codes.
+  raw_dir <- path(base_dir, "data", "raw")
+  dir_create(raw_dir)
+
   series <- rbcb::get_series(
     c(
       vehicle_interest_rate = config$sgs_codes$vehicle_interest_rate,
@@ -71,28 +100,37 @@ ingest_credit_datasets <- function(config, base_dir = "project") {
     end_date = Sys.Date()
   ) %>%
     as_tibble() %>%
-    mutate(source_dataset = "BCB SGS via rbcb", source_url = "https://www.bcb.gov.br")
+    mutate(
+      source_dataset = "BCB SGS via rbcb",
+      source_url = "https://www.bcb.gov.br"
+    )
 
-  credit_file <- path(base_dir, "data", "raw", "credit_and_selic_sgs.csv")
+  credit_file <- path(raw_dir, "credit_and_selic_sgs.csv")
   write_csv(series, credit_file)
 
   list(credit_sgs = credit_file)
 }
 
 ingest_ipca_sidra <- function(config, base_dir = "project") {
+  raw_dir <- path(base_dir, "data", "raw")
+  dir_create(raw_dir)
+
   ipca <- sidrar::get_sidra(
     api = sprintf("/t/1737/n1/all/v/2266/p/%s?formato=json", config$sidra_period)
   ) %>%
     as_tibble()
 
-  output_file <- path(base_dir, "data", "raw", "ipca_sidra_1737.csv")
+  output_file <- path(raw_dir, "ipca_sidra_1737.csv")
   write_csv(ipca, output_file)
 
   list(ipca = output_file)
 }
 
 create_manual_panorama_template <- function(base_dir = "project") {
-  manual_file <- path(base_dir, "data", "manual", "manual_panorama_series_template.csv")
+  manual_dir <- path(base_dir, "data", "manual")
+  dir_create(manual_dir)
+
+  manual_file <- path(manual_dir, "manual_panorama_series_template.csv")
 
   if (!file_exists(manual_file)) {
     template <- tibble(
