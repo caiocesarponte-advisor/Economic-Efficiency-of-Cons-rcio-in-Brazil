@@ -148,3 +148,58 @@
 [2026-03-13 13:51:47] [plot:exclusion_rate] NA counts -> Year=0 | ExclusionRate=6
 [2026-03-13 13:51:48] Completed step: Visualization
 [2026-03-13 13:51:48] Pipeline completed successfully.
+[2026-03-13 16:59:56] Starting step: Setup directories
+[2026-03-13 16:59:56] Completed step: Setup directories
+[2026-03-13 16:59:56] Starting step: Ingestion - consorcio datasets
+[2026-03-13 16:59:57] Downloading CKAN dataset from: https://api.bcb.gov.br/dados/serie/bcdata.sgs.27459/dados?formato=csv
+[2026-03-13 16:59:58] Downloading CKAN dataset from: https://api.bcb.gov.br/dados/serie/bcdata.sgs.27487/dados?formato=csv
+[2026-03-13 16:59:59] Downloading CKAN dataset from: https://api.bcb.gov.br/dados/serie/bcdata.sgs.27488/dados?formato=csv
+[2026-03-13 17:00:03] Starting step: Setup directories
+[2026-03-13 17:00:03] Completed step: Setup directories
+[2026-03-13 17:00:03] Starting step: Ingestion - consorcio datasets
+[2026-03-13 17:00:05] Downloading CKAN dataset from: https://api.bcb.gov.br/dados/serie/bcdata.sgs.27459/dados?formato=csv
+[2026-03-13 17:00:07] Downloading CKAN dataset from: https://api.bcb.gov.br/dados/serie/bcdata.sgs.27487/dados?formato=csv
+[2026-03-13 17:00:09] Downloading CKAN dataset from: https://api.bcb.gov.br/dados/serie/bcdata.sgs.27488/dados?formato=csv
+[2026-03-13 17:00:09] Completed step: Ingestion - consorcio datasets
+[2026-03-13 17:00:09] Starting step: Ingestion - credit (SGS monthly)
+[2026-03-13 17:00:24] Completed step: Ingestion - credit (SGS monthly)
+[2026-03-13 17:00:24] Starting step: Ingestion - SIDRA IPCA
+[2026-03-13 17:00:26] Completed step: Ingestion - SIDRA IPCA
+[2026-03-13 17:00:26] Starting step: Ingestion - manual panorama template
+[2026-03-13 17:00:26] Completed step: Ingestion - manual panorama template
+[2026-03-13 17:00:26] Starting step: Processing - consorcio
+[2026-03-13 17:00:26] [active_quotas] Using value column: valor
+[2026-03-13 17:00:26] [excluded_quotas] Using value column: valor
+[2026-03-13 17:00:26] [exclusion_index] Using value column: valor
+[2026-03-13 17:00:26] Completed step: Processing - consorcio
+[2026-03-13 17:00:26] Starting step: Processing - credit (selic optional)
+[2026-03-13 17:00:26] Completed step: Processing - credit (selic optional)
+[2026-03-13 17:00:26] Starting step: Processing - IPCA
+[2026-03-13 17:00:26] Completed step: Processing - IPCA
+[2026-03-13 17:00:26] Starting step: Processing - manual panorama
+[2026-03-13 17:00:27] Completed step: Processing - manual panorama
+[2026-03-13 17:00:27] Starting step: Transformation - annual consorcio summary
+[2026-03-13 17:00:27] [active_quotas] Rows after annual aggregation: 14
+[2026-03-13 17:00:27] [active_quotas] Columns available: Year, ActiveQuotas
+[2026-03-13 17:00:27] [active_quotas] NA count - Year: 0 | ActiveQuotas: 0
+[2026-03-13 17:00:27] [exclusion_index] Rows after annual aggregation: 8
+[2026-03-13 17:00:27] [exclusion_index] Columns available: Year, ExclusionRate
+[2026-03-13 17:00:27] [exclusion_index] NA count - Year: 0 | ExclusionRate: 0
+[2026-03-13 17:00:27] Completed step: Transformation - annual consorcio summary
+[2026-03-13 17:00:27] Starting step: Transformation - monthly credit parameters
+[2026-03-13 17:00:27] Completed step: Transformation - monthly credit parameters
+[2026-03-13 17:00:27] Starting step: Transformation - macro parameters
+[2026-03-13 17:00:27] Completed step: Transformation - macro parameters
+[2026-03-13 17:00:27] Starting step: Simulation
+[2026-03-13 17:00:27] Completed step: Simulation
+[2026-03-13 17:00:27] Starting step: Storage - processed tables
+[2026-03-13 17:00:27] Completed step: Storage - processed tables
+[2026-03-13 17:00:27] Starting step: Visualization
+[2026-03-13 17:00:27] [plot:active_quotas] nrow = 14
+[2026-03-13 17:00:27] [plot:active_quotas] columns = Year, ActiveQuotas, ExclusionRate
+[2026-03-13 17:00:27] [plot:active_quotas] NA counts -> Year=0 | ActiveQuotas=0
+[2026-03-13 17:00:28] [plot:exclusion_rate] nrow = 14
+[2026-03-13 17:00:28] [plot:exclusion_rate] columns = Year, ActiveQuotas, ExclusionRate
+[2026-03-13 17:00:28] [plot:exclusion_rate] NA counts -> Year=0 | ExclusionRate=6
+[2026-03-13 17:00:28] Completed step: Visualization
+[2026-03-13 17:00:28] Pipeline completed successfully.
