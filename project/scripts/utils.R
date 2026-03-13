@@ -85,7 +85,20 @@ read_csv_safe <- function(path_file, ...) {
   if (!file_exists(path_file)) {
     stop(sprintf("File not found: %s", path_file))
   }
-  readr::read_csv(path_file, show_col_types = FALSE, ...)
+
+  df <- readr::read_csv(path_file, show_col_types = FALSE, ...)
+
+  if (ncol(df) == 1 && any(stringr::str_detect(df[[1]], ";"))) {
+    message("Detected semicolon-delimited file. Re-reading with ';' delimiter.")
+    df <- readr::read_delim(
+      path_file,
+      delim = ";",
+      show_col_types = FALSE,
+      ...
+    )
+  }
+
+  df
 }
 
 `%||%` <- function(x, y) if (is.null(x) || length(x) == 0 || is.na(x)) y else x

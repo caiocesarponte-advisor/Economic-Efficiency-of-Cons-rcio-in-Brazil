@@ -2,9 +2,15 @@
 
 process_consorcio_raw <- function(file_paths, config) {
   stringify_scalar <- function(value) {
-    if (is.null(value) || length(value) == 0) return(NA_character_)
-    if (is.language(value) || is.expression(value)) return(paste(deparse(value), collapse = " "))
-    if (is.list(value)) return(paste(map_chr(value, stringify_scalar), collapse = " "))
+    if (is.null(value) || length(value) == 0) {
+      return(NA_character_)
+    }
+    if (is.language(value) || is.expression(value)) {
+      return(paste(deparse(value), collapse = " "))
+    }
+    if (is.list(value)) {
+      return(paste(map_chr(value, stringify_scalar), collapse = " "))
+    }
     paste(as.character(value), collapse = " ")
   }
 
@@ -13,7 +19,7 @@ process_consorcio_raw <- function(file_paths, config) {
       return(as.character(x))
     }
 
-    map_chr(seq_along(x), ~stringify_scalar(x[[.x]]))
+    map_chr(seq_along(x), ~ stringify_scalar(x[[.x]]))
   }
 
   clean_table <- function(path_file) {
@@ -22,7 +28,7 @@ process_consorcio_raw <- function(file_paths, config) {
       mutate(
         across(
           everything(),
-          ~{
+          ~ {
             as_character_vector(.x) %>%
               str_squish() %>%
               na_if("")
@@ -34,45 +40,38 @@ process_consorcio_raw <- function(file_paths, config) {
   parse_standard_date <- function(df) {
     canonical_date_cols <- c(
       "date", "data", "periodo", "mes", "month", "ano", "year",
-      "data_base", "data_referencia", "periodo_referencia", "mes_referencia"
+      "data_base", "data_referencia", "periodo_referencia", "mes_referencia", "data_valor"
     )
 
     date_col <- canonical_date_cols[canonical_date_cols %in% names(df)][1]
 
     if (is.na(date_col)) {
       date_col <- names(df) %>%
-        keep(~str_detect(.x, regex("date|data|periodo|mes|month|ano|year", ignore_case = TRUE))) %>%
-        discard(~str_detect(.x, regex("valor|value|quant|qtd|cotas|indice|taxa|rate", ignore_case = TRUE))) %>%
+        keep(~ str_detect(.x, regex("date|data|periodo|mes|month|ano|year", ignore_case = TRUE))) %>%
+        discard(~ str_detect(.x, regex("valor|value|quant|qtd|cotas|indice|taxa|rate", ignore_case = TRUE))) %>%
         first()
     }
 
-    if (!is.na(date_col)) {
-      raw_date <- as_character_vector(df[[date_col]])
-
-      parsed_date <- suppressWarnings(
-        parse_date_time(
-          raw_date,
-          orders = c("dmy", "dmY", "ymd", "Ymd", "my", "Ym", "ym", "Y-m", "Y/m", "Y"),
-          quiet = TRUE
-        ) %>%
-          as_date()
-      )
-
-      year_only <- suppressWarnings(parse_integer(str_extract(raw_date, "\\d{4}")))
-      parsed_date <- coalesce(parsed_date, make_date(year_only, 1, 1))
-      return(parsed_date)
+    if (is.null(date_col) || length(date_col) == 0 || is.na(date_col)) {
+      stop("No date-like column was found in the dataset.")
     }
 
-    year_col <- names(df)[str_detect(names(df), regex("^ano$|^year$|ano_referencia|year_reference", ignore_case = TRUE))][1]
-    month_col <- names(df)[str_detect(names(df), regex("^mes$|^month$|mes_referencia|month_reference", ignore_case = TRUE))][1]
+    raw_date <- df[[date_col]]
 
-    if (!is.na(year_col) && !is.na(month_col)) {
-      year_vec <- suppressWarnings(parse_integer(as_character_vector(df[[year_col]])))
-      month_vec <- suppressWarnings(parse_integer(as_character_vector(df[[month_col]])))
-      return(make_date(year_vec, month_vec, 1))
+    parsed_date <- suppressWarnings(
+      lubridate::parse_date_time(
+        as.character(raw_date),
+        orders = c("dmy", "ymd", "my", "Ym", "Y-m", "Y/m", "Y"),
+        quiet = TRUE
+      ) %>%
+        lubridate::as_date()
+    )
+
+    if (all(is.na(parsed_date))) {
+      stop(paste0("Column '", date_col, "' was found, but no valid dates could be parsed."))
     }
 
-    rep(as_date(NA), nrow(df))
+    parsed_date
   }
 
   extract_value_column <- function(df, candidates, table_label) {
@@ -80,7 +79,7 @@ process_consorcio_raw <- function(file_paths, config) {
 
     if (is.na(matched_col)) {
       matched_col <- names(df) %>%
-        keep(~str_detect(.x, regex(str_c(candidates, collapse = "|"), ignore_case = TRUE))) %>%
+        keep(~ str_detect(.x, regex(str_c(candidates, collapse = "|"), ignore_case = TRUE))) %>%
         first()
     }
 
