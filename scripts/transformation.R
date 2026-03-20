@@ -44,8 +44,22 @@ build_annual_consorcio_summary <- function(consorcio_processed, config) {
     mutate(ExclusionRate = if_else(is.nan(ExclusionRate), NA_real_, ExclusionRate)) %>%
     validate_for_plot("exclusion_index", "ExclusionRate")
 
-  active %>%
-    left_join(exclusion, by = "Year") %>%
+  result <- active %>%
+    left_join(exclusion, by = "Year")
+
+  # Append manually sourced 2023-2024 data not yet in BCB open datasets
+  # Sources: BCB Panorama do Sistema de Consórcios 2023 & 2024
+  # ActiveQuotas: cotas ativas ao final do ano
+  # ExclusionRate: índice de exclusão (proporção de cotas excluídas / total)
+  manual_annual <- tribble(
+    ~Year, ~ActiveQuotas,  ~ExclusionRate,
+    2023L, 10340000,        0.488,
+    2024L, 11350000,        0.486
+  )
+
+  result <- result %>%
+    bind_rows(manual_annual) %>%
+    filter(!duplicated(Year, fromLast = TRUE)) %>%
     arrange(Year)
 }
 
@@ -83,13 +97,8 @@ simulate_asset <- function(asset_name, asset_value, params, credit_row, manual_p
   monthly_discount <- (1 + params$discount_rate_annual)^(1 / 12) - 1
   admin_fee_pct <- params$admin_fee_default
 
-  if (nrow(manual_panorama) > 0) {
-    if (asset_name == "vehicle" && any(!is.na(manual_panorama$admin_fee_auto))) {
-      admin_fee_pct <- dplyr::last(na.omit(manual_panorama$admin_fee_auto)) / 100
-    }
-    if (asset_name == "housing" && any(!is.na(manual_panorama$admin_fee_housing))) {
-      admin_fee_pct <- dplyr::last(na.omit(manual_panorama$admin_fee_housing)) / 100
-    }
+  if (nrow(manual_panorama) > 0 && any(!is.na(manual_panorama$admin_fee_total))) {
+    admin_fee_pct <- dplyr::last(na.omit(manual_panorama$admin_fee_total)) / 100
   }
 
   if (asset_name == "vehicle") {
@@ -102,7 +111,19 @@ simulate_asset <- function(asset_name, asset_value, params, credit_row, manual_p
 
   financing_payment <- annuity_payment(asset_value, financing_rate_monthly, financing_term)
 
-  consortium_term <- params$consortium_term_months
+  # Asset-specific consortium parameters
+  if (asset_name == "vehicle") {
+    consortium_term <- params$vehicle_consortium_term
+    early_month <- params$vehicle_early_month
+    mid_month <- params$vehicle_mid_month
+    late_month <- params$vehicle_late_month
+  } else {
+    consortium_term <- params$housing_consortium_term
+    early_month <- params$housing_early_month
+    mid_month <- params$housing_mid_month
+    late_month <- params$housing_late_month
+  }
+
   consortium_payment <- (asset_value * (1 + admin_fee_pct)) / consortium_term
 
   autonomous_rate_monthly <- (1 + params$autonomous_return_annual)^(1 / 12) - 1
@@ -114,21 +135,32 @@ simulate_asset <- function(asset_name, asset_value, params, credit_row, manual_p
 
   scenarios <- tribble(
     ~scenario, ~months_until_acquisition, ~monthly_cash_flow, ~n_payments,
-    "consortium_early", params$consortium_early_month, consortium_payment, consortium_term,
-    "consortium_mid", params$consortium_mid_month, consortium_payment, consortium_term,
-    "consortium_late", params$consortium_late_month, consortium_payment, consortium_term,
+    "consortium_early", early_month, consortium_payment, consortium_term,
+    "consortium_mid", mid_month, consortium_payment, consortium_term,
+    "consortium_late", late_month, consortium_payment, consortium_term,
     "financing", 1, financing_payment, financing_term,
     "autonomous_savings", params$autonomous_target_months, autonomous_monthly_contribution, params$autonomous_target_months
   )
 
+  monthly_selic <- monthly_discount
+
   summary <- scenarios %>%
     mutate(
       total_cost = monthly_cash_flow * n_payments,
-      present_value_cost = map2_dbl(monthly_cash_flow, n_payments, ~sum(.x / ((1 + monthly_discount)^(1:.y)))),
-      opportunity_cost = present_value_cost - asset_value,
+      present_value_cost = map2_dbl(monthly_cash_flow, n_payments, function(pmt, n) {
+        sum(pmt / ((1 + monthly_discount)^(1:n)))
+      }),
+      # FV of all payments accumulated at Selic to end of plan
+      fv_payments = map2_dbl(monthly_cash_flow, n_payments, function(pmt, n) {
+        sum(pmt * (1 + monthly_selic)^((n:1) - 1))
+      }),
+      # FV of asset from contemplation month to end of plan
+      fv_asset = asset_value * (1 + monthly_selic)^(n_payments - months_until_acquisition),
+      opportunity_cost = fv_payments - fv_asset,
       asset = asset_name
     ) %>%
-    select(asset, scenario, total_cost, present_value_cost, months_until_acquisition, opportunity_cost, monthly_cash_flow)
+    select(asset, scenario, total_cost, present_value_cost, months_until_acquisition,
+           opportunity_cost, monthly_cash_flow, fv_payments, fv_asset)
 
   cashflows <- scenarios %>%
     mutate(asset = asset_name) %>%

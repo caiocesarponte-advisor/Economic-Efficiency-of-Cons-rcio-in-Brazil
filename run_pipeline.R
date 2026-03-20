@@ -28,19 +28,26 @@ config <- list(
     housing_term_months = 20912
   ),
   ingestion = list(
-    include_optional_selic = FALSE
+    include_optional_selic = TRUE
   ),
   simulation = list(
     vehicle_value = 80000,
     housing_value = 300000,
-    discount_rate_annual = 0.12,
-    admin_fee_default = 0.18,
-    consortium_term_months = 180,
-    consortium_early_month = 12,
-    consortium_mid_month = 60,
-    consortium_late_month = 120,
+    admin_fee_default = 0.1795,
+
+    # Asset-specific consortium parameters
+    vehicle_consortium_term = 90,
+    vehicle_early_month = 1,
+    vehicle_mid_month = 45,
+    vehicle_late_month = 90,
+
+    housing_consortium_term = 215,
+    housing_early_month = 1,
+    housing_mid_month = 107,
+    housing_late_month = 215,
+
     autonomous_target_months = 84,
-    autonomous_return_annual = 0.08,
+
     fallback_vehicle_rate = 2.2,
     fallback_vehicle_term = 48,
     fallback_housing_rate = 0.9,
@@ -63,6 +70,18 @@ manual_panorama <- safe_run("Processing - manual panorama", function() process_m
 annual_consorcio_summary <- safe_run("Transformation - annual consorcio summary", function() build_annual_consorcio_summary(consorcio_processed, config))
 monthly_credit_parameters <- safe_run("Transformation - monthly credit parameters", function() build_monthly_credit_parameters(credit_processed, config))
 macro_parameters <- safe_run("Transformation - macro parameters", function() build_macro_parameters(credit_processed, ipca_processed, config))
+
+if (!is.null(macro_parameters) && "selic_rate" %in% names(macro_parameters) &&
+    any(!is.na(macro_parameters$selic_rate))) {
+  avg_selic_annual <- mean(macro_parameters$selic_rate, na.rm = TRUE) / 100
+  config$simulation$discount_rate_annual <- avg_selic_annual
+  config$simulation$autonomous_return_annual <- avg_selic_annual
+  log_info(sprintf("Selic-derived discount rate: %.4f", avg_selic_annual))
+} else {
+  config$simulation$discount_rate_annual <- 0.1175
+  config$simulation$autonomous_return_annual <- 0.1175
+  log_info("Selic data unavailable; using fallback discount rate 11.75%")
+}
 
 simulation_outputs <- safe_run("Simulation", function() {
   run_simulations(
