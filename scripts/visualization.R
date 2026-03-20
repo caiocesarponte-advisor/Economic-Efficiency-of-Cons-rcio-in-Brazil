@@ -76,7 +76,7 @@ generate_figures <- function(annual_consorcio_summary,
       x = "Year",
       y = "Total active quotas"
     ) +
-    scale_y_continuous(labels = label_number(big.mark = ".", decimal.mark = ",")) +
+    scale_y_continuous(labels = label_number(big.mark = ".", decimal.mark = ","), breaks = seq(2009, 2024, by = 1)) +
     theme_article()
 
   outputs$graph1 <- save_dual_plot(p1, path(figure_dir, "graph1_active_quotas"))
@@ -92,7 +92,8 @@ generate_figures <- function(annual_consorcio_summary,
     ggplot(aes(x = Year, y = ExclusionRate)) +
     geom_line(linewidth = 1, color = "#e31a1c") +
     geom_point(size = 2, color = "#e31a1c") +
-    scale_y_continuous(labels = percent_format()) +
+    scale_x_continuous(breaks = seq(2015, 2024, by = 1)) +
+    scale_y_continuous(labels = percent_format(), limits = c(0.40, 0.55)) +
     labs(
       title = "Consortium exclusion rate",
       subtitle = "Source: BCB Open Data",
