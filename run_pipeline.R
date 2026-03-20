@@ -3,11 +3,11 @@
 # Main reproducible pipeline for comparing economic efficiency of:
 # (1) consortium, (2) bank financing, and (3) autonomous savings.
 
-source(here::here("project", "scripts", "utils.R"))
-source(here::here("project", "scripts", "ingestion.R"))
-source(here::here("project", "scripts", "processing.R"))
-source(here::here("project", "scripts", "transformation.R"))
-source(here::here("project", "scripts", "visualization.R"))
+source(here::here("scripts", "utils.R"))
+source(here::here("scripts", "ingestion.R"))
+source(here::here("scripts", "processing.R"))
+source(here::here("scripts", "transformation.R"))
+source(here::here("scripts", "visualization.R"))
 
 config <- list(
   date_start = as.Date("2012-01-01"),
@@ -48,7 +48,7 @@ config <- list(
   )
 )
 
-safe_run("Setup directories", function() ensure_directories("project"))
+safe_run("Setup directories", function() ensure_directories("."))
 
 consorcio_files <- safe_run("Ingestion - consorcio datasets", function() ingest_consorcio_datasets(config))
 credit_files <- safe_run("Ingestion - credit (SGS monthly)", function() ingest_credit_datasets(config))
@@ -73,14 +73,14 @@ simulation_outputs <- safe_run("Simulation", function() {
 })
 
 safe_run("Storage - processed tables", function() {
-  fs::dir_create("project/data/processed")
+  fs::dir_create("data/processed")
 
-  write_csv(annual_consorcio_summary, "project/data/processed/annual_consorcio_summary.csv")
-  write_csv(monthly_credit_parameters, "project/data/processed/monthly_credit_parameters.csv")
-  write_csv(macro_parameters, "project/data/processed/macro_parameters.csv")
-  write_csv(manual_panorama, "project/data/processed/manual_panorama_series.csv")
-  write_csv(simulation_outputs$simulation_results, "project/data/processed/simulation_results.csv")
-  write_csv(simulation_outputs$simulation_cashflows, "project/data/processed/simulation_cashflows.csv")
+  write_csv(annual_consorcio_summary, "data/processed/annual_consorcio_summary.csv")
+  write_csv(monthly_credit_parameters, "data/processed/monthly_credit_parameters.csv")
+  write_csv(macro_parameters, "data/processed/macro_parameters.csv")
+  write_csv(manual_panorama, "data/processed/manual_panorama_series.csv")
+  write_csv(simulation_outputs$simulation_results, "data/processed/simulation_results.csv")
+  write_csv(simulation_outputs$simulation_cashflows, "data/processed/simulation_cashflows.csv")
   TRUE
 })
 
@@ -90,7 +90,7 @@ safe_run("Visualization", function() {
     monthly_credit_parameters = monthly_credit_parameters,
     manual_panorama_series = manual_panorama,
     simulation_results = simulation_outputs$simulation_results,
-    base_dir = "project"
+    base_dir = "."
   )
   TRUE
 })

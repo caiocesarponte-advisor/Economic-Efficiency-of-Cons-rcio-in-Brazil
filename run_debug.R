@@ -12,17 +12,17 @@ cat("==============================\n\n")
 # Load datasets
 # ----------------------------------------------------------
 
-annual_consorcio_summary <- read_csv("project/data/processed/annual_consorcio_summary.csv")
+annual_consorcio_summary <- read_csv("data/processed/annual_consorcio_summary.csv")
 
-macro_parameters <- read_csv("project/data/processed/macro_parameters.csv")
+macro_parameters <- read_csv("data/processed/macro_parameters.csv")
 
-manual_panorama_series <- read_csv("project/data/processed/manual_panorama_series.csv")
+manual_panorama_series <- read_csv("data/processed/manual_panorama_series.csv")
 
-monthly_credit_parameters <- read_csv("project/data/processed/monthly_credit_parameters.csv")
+monthly_credit_parameters <- read_csv("data/processed/monthly_credit_parameters.csv")
 
-simulation_cashflows <- read_csv("project/data/processed/simulation_cashflows.csv")
+simulation_cashflows <- read_csv("data/processed/simulation_cashflows.csv")
 
-simulation_results <- read_csv("project/data/processed/simulation_results.csv")
+simulation_results <- read_csv("data/processed/simulation_results.csv")
 
 # ----------------------------------------------------------
 # Helper function

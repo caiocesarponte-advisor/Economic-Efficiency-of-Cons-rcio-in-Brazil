@@ -15,23 +15,18 @@ A análise se apoia principalmente em **fontes institucionais**, com destaque pa
 
 O projeto segue uma arquitetura modular de pipeline:
 
-project/
-│
 ├─ run_pipeline.R
-│
 ├─ scripts/
 │   ├─ utils.R
 │   ├─ ingestion.R
 │   ├─ processing.R
 │   ├─ transformation.R
 │   └─ visualization.R
-│
 ├─ data/
 │   ├─ raw/
 │   ├─ interim/
 │   ├─ processed/
 │   └─ manual/
-│
 └─ figures/
 
 ### Descrição dos módulos
@@ -78,7 +73,7 @@ install.packages(c(
 
 Na raiz do repositório:
 
-Rscript project/run_pipeline.R
+Rscript run_pipeline.R
 
 O script executa as etapas abaixo:
 
@@ -99,7 +94,7 @@ Após a execução, o pipeline gera:
 
 Local:
 
-project/data/processed/
+data/processed/
 
 Arquivos gerados:
 
@@ -116,7 +111,7 @@ simulation_cashflows.csv
 
 Local:
 
-project/figures/
+figures/
 
 As figuras incluem:
 
@@ -194,7 +189,7 @@ Como esses relatórios **não disponibilizam uma API tabular estável**, o pipel
 
 O pipeline gera automaticamente um arquivo modelo:
 
-project/data/manual/manual_panorama_series_template.csv
+data/manual/manual_panorama_series_template.csv
 
 Você deve preencher manualmente esse arquivo com dados extraídos dos relatórios Panorama (por exemplo: 2022, 2023, 2024).
 

@@ -45,7 +45,7 @@ generate_figures <- function(annual_consorcio_summary,
                              monthly_credit_parameters,
                              manual_panorama_series,
                              simulation_results,
-                             base_dir = "project") {
+                             base_dir = ".") {
   figure_dir <- fs::path(base_dir, "figures")
   fs::dir_create(figure_dir)
 

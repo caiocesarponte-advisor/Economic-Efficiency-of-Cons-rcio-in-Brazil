@@ -17,7 +17,7 @@ suppressPackageStartupMessages({
   library(sidrar)
 })
 
-log_info <- function(message, log_file = path("project", "logs", "pipeline.log")) {
+log_info <- function(message, log_file = path("logs", "pipeline.log")) {
   formatted_message <- sprintf("[%s] %s", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), message)
   cat(formatted_message, "\n")
   write_lines(formatted_message, log_file, append = TRUE)
@@ -36,7 +36,7 @@ safe_run <- function(step_name, fn) {
   result
 }
 
-ensure_directories <- function(base_dir = "project") {
+ensure_directories <- function(base_dir = ".") {
   dirs <- c(
     path(base_dir, "data", "raw"),
     path(base_dir, "data", "interim"),

@@ -67,7 +67,7 @@ download_ckan_dataset <- function(dataset_url, output_file) {
   output_file
 }
 
-ingest_consorcio_datasets <- function(config, base_dir = "project") {
+ingest_consorcio_datasets <- function(config, base_dir = ".") {
   raw_dir <- path(base_dir, "data", "raw")
   dir_create(raw_dir)
 
@@ -84,7 +84,7 @@ ingest_consorcio_datasets <- function(config, base_dir = "project") {
   files
 }
 
-ingest_credit_datasets <- function(config, base_dir = "project") {
+ingest_credit_datasets <- function(config, base_dir = ".") {
   raw_dir <- path(base_dir, "data", "raw")
   dir_create(raw_dir)
 
@@ -214,7 +214,7 @@ ingest_credit_datasets <- function(config, base_dir = "project") {
   files
 }
 
-ingest_ipca_sidra <- function(config, base_dir = "project") {
+ingest_ipca_sidra <- function(config, base_dir = ".") {
   raw_dir <- path(base_dir, "data", "raw")
   dir_create(raw_dir)
 
@@ -229,7 +229,7 @@ ingest_ipca_sidra <- function(config, base_dir = "project") {
   list(ipca = output_file)
 }
 
-create_manual_panorama_template <- function(base_dir = "project") {
+create_manual_panorama_template <- function(base_dir = ".") {
   manual_dir <- path(base_dir, "data", "manual")
   dir_create(manual_dir)
 
