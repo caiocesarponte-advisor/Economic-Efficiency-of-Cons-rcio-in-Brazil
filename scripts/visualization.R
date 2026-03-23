@@ -43,7 +43,7 @@ validate_plot_input <- function(df, required_columns, table_label, y_col) {
     filter(!is.na(.data[[required_columns[1]]]), !is.na(.data[[y_col]]))
 }
 
-# CORREÇÃO 1: "autonomous_savings" com 's' — alinhado com o dataset real
+# Shared labels for scenario translation
 scenario_labels_pt <- c(
   "consortium_early"   = "Consórcio (contemplação antecipada)",
   "consortium_mid"     = "Consórcio (contemplação intermediária)",
@@ -62,6 +62,15 @@ format_brl <- function(x) {
   paste0("R$ ", formatC(x, format = "f", big.mark = ".", decimal.mark = ",", digits = 0))
 }
 
+# Format opportunity cost with explicit sign
+format_opp <- function(x) {
+  ifelse(
+    x < 0,
+    paste0("− R$ ", formatC(abs(x), format = "f", big.mark = ".", decimal.mark = ",", digits = 0)),
+    paste0("+ R$ ", formatC(x,      format = "f", big.mark = ".", decimal.mark = ",", digits = 0))
+  )
+}
+
 generate_figures <- function(annual_consorcio_summary,
                              monthly_credit_parameters,
                              manual_panorama_series,
@@ -71,7 +80,6 @@ generate_figures <- function(annual_consorcio_summary,
   figure_dir <- fs::path(base_dir, "figures")
   fs::dir_create(figure_dir)
 
-  # CORREÇÃO 1: "autonomous_savings" com 's' — alinhado com o dataset real
   scenario_levels <- c(
     "consortium_early",
     "consortium_mid",
@@ -92,12 +100,12 @@ generate_figures <- function(annual_consorcio_summary,
 
   p1 <- plot_active %>%
     ggplot(aes(x = Year, y = ActiveQuotas)) +
-    geom_line(linewidth = 1, color = "#1f78b4") +
-    geom_point(size = 2, color = "#1f78b4") +
+    geom_line(linewidth = 1, color = "grey20") +
+    geom_point(size = 2.5, color = "grey20") +
     labs(
-      title = "Cotas ativas de consórcio no Brasil",
-      x = "Ano",
-      y = "Total de cotas ativas",
+      title   = "Cotas ativas de consórcio no Brasil",
+      x       = "Ano",
+      y       = "Total de cotas ativas",
       caption = "Fonte: BCB Open Data"
     ) +
     scale_x_continuous(breaks = seq(2009, 2024, by = 1)) +
@@ -117,14 +125,14 @@ generate_figures <- function(annual_consorcio_summary,
 
   p2 <- plot_exclusion %>%
     ggplot(aes(x = Year, y = ExclusionRate)) +
-    geom_line(linewidth = 1, color = "#e31a1c") +
-    geom_point(size = 2, color = "#e31a1c") +
+    geom_line(linewidth = 1, color = "grey20") +
+    geom_point(size = 2.5, color = "grey20") +
     scale_x_continuous(breaks = seq(2015, 2024, by = 1)) +
     scale_y_continuous(labels = percent_format(), limits = c(0.40, 0.55)) +
     labs(
-      title = "Taxa de exclusão do sistema de consórcios",
-      x = "Ano",
-      y = "Taxa de exclusão",
+      title   = "Taxa de exclusão do sistema de consórcios",
+      x       = "Ano",
+      y       = "Taxa de exclusão",
       caption = "Fonte: BCB Open Data"
     ) +
     theme_article()
@@ -140,12 +148,11 @@ generate_figures <- function(annual_consorcio_summary,
   })
 
   latest_year <- max(manual_panorama_series$year, na.rm = TRUE)
-  params_row <- manual_panorama_series %>% filter(year == latest_year)
+  params_row  <- manual_panorama_series %>% filter(year == latest_year)
 
-  # Detectar escala automaticamente: se > 1 já é percentual, se <= 1 converter
   fee_auto    <- params_row$admin_fee_auto
   fee_housing <- params_row$admin_fee_housing
-  if (fee_auto <= 1)    fee_auto    <- fee_auto * 100
+  if (fee_auto    <= 1) fee_auto    <- fee_auto    * 100
   if (fee_housing <= 1) fee_housing <- fee_housing * 100
 
   params_table <- tibble(
@@ -165,9 +172,9 @@ generate_figures <- function(annual_consorcio_summary,
 
   table_grob <- gridExtra::tableGrob(
     params_table,
-    rows = NULL,
+    rows  = NULL,
     theme = gridExtra::ttheme_minimal(
-      core = list(
+      core    = list(
         fg_params = list(fontsize = 10, fontfamily = "sans"),
         bg_params = list(fill = c("grey95", "white"))
       ),
@@ -178,13 +185,12 @@ generate_figures <- function(annual_consorcio_summary,
     )
   )
 
-  # CORREÇÃO 2: fundo branco explícito + xlim/ylim para renderização correta
   p3 <- ggplot() +
     xlim(0, 1) +
     ylim(0, 1) +
     annotation_custom(table_grob, xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf) +
     labs(
-      title = sprintf("Parâmetros das simulações — Consórcio (%d)", latest_year),
+      title   = sprintf("Parâmetros das simulações — Consórcio (%d)", latest_year),
       caption = "Fonte: BCB — Panorama do Sistema de Consórcios"
     ) +
     theme_void(base_family = "sans") +
@@ -192,7 +198,6 @@ generate_figures <- function(annual_consorcio_summary,
       plot.title      = element_text(face = "bold", size = 13, hjust = 0.5),
       plot.caption    = element_text(size = 8, color = "grey50", hjust = 0),
       plot.margin     = margin(10, 10, 10, 10),
-      # CORREÇÃO 2: fundo branco explícito
       plot.background = element_rect(fill = "white", color = NA)
     )
 
@@ -209,19 +214,42 @@ generate_figures <- function(annual_consorcio_summary,
                            levels = asset_labels_pt)
     )
 
-  palette_scenarios <- c(
-    "Consórcio (contemplação antecipada)"    = "#1b9e77",
-    "Consórcio (contemplação intermediária)" = "#7570b3",
-    "Consórcio (contemplação tardia)"        = "#d95f02",
-    "Financiamento bancário"                 = "#e7298a",
-    "Acumulação autônoma"                    = "#66a61e"
+  # Paleta monocromática — adequada para impressão P&B
+  # fig04/05/06: tons de cinza espaçados + borda escura
+  # fig07:       tipo de linha + marcador
+  scenario_grey <- c(
+    "Consórcio (contemplação antecipada)"    = "grey15",
+    "Consórcio (contemplação intermediária)" = "grey40",
+    "Consórcio (contemplação tardia)"        = "grey62",
+    "Financiamento bancário"                 = "grey82",
+    "Acumulação autônoma"                    = "white"
+  )
+
+  scenario_linetype <- c(
+    "Consórcio (contemplação antecipada)"    = "solid",
+    "Consórcio (contemplação intermediária)" = "dashed",
+    "Consórcio (contemplação tardia)"        = "dotted",
+    "Financiamento bancário"                 = "longdash",
+    "Acumulação autônoma"                    = "twodash"
+  )
+  scenario_shape <- c(
+    "Consórcio (contemplação antecipada)"    = 16,
+    "Consórcio (contemplação intermediária)" = 17,
+    "Consórcio (contemplação tardia)"        = 15,
+    "Financiamento bancário"                 = 18,
+    "Acumulação autônoma"                    = 4
   )
 
   # ── Gráfico 4: Custo total desembolsado ────────────────────────────────────
   p4 <- sim_data %>%
     ggplot(aes(x = asset_pt, y = total_cost, fill = scenario_pt)) +
-    geom_col(position = position_dodge(width = 0.8), width = 0.7) +
-    scale_fill_manual(values = palette_scenarios, name = "Cenário") +
+    geom_col(
+      position  = position_dodge(width = 0.8),
+      width     = 0.7,
+      colour    = "grey10",
+      linewidth = 0.3
+    ) +
+    scale_fill_manual(values = scenario_grey, name = "Cenário") +
     scale_y_continuous(labels = function(x) format_brl(x)) +
     labs(
       title   = "Custo total desembolsado por mecanismo de aquisição",
@@ -238,8 +266,13 @@ generate_figures <- function(annual_consorcio_summary,
   # ── Gráfico 5: Valor presente dos custos ───────────────────────────────────
   p5 <- sim_data %>%
     ggplot(aes(x = asset_pt, y = present_value_cost, fill = scenario_pt)) +
-    geom_col(position = position_dodge(width = 0.8), width = 0.7) +
-    scale_fill_manual(values = palette_scenarios, name = "Cenário") +
+    geom_col(
+      position  = position_dodge(width = 0.8),
+      width     = 0.7,
+      colour    = "grey10",
+      linewidth = 0.3
+    ) +
+    scale_fill_manual(values = scenario_grey, name = "Cenário") +
     scale_y_continuous(labels = function(x) format_brl(x)) +
     labs(
       title   = "Valor presente dos desembolsos por mecanismo",
@@ -254,20 +287,21 @@ generate_figures <- function(annual_consorcio_summary,
   log_info("[viz] Gráfico 5 salvo: fig05_valor_presente")
 
   # ── Gráfico 6: Custo de oportunidade ───────────────────────────────────────
-  # CORREÇÃO 3: caption explica a escala do imóvel (valorização projetada ao longo de 215 meses)
   opp_data <- sim_data %>%
-    mutate(
-      opp_color = ifelse(opportunity_cost < 0, "Favorável", "Desfavorável")
-    )
+    mutate(opp_direction = ifelse(opportunity_cost < 0, "Favorável", "Desfavorável"))
 
   p6 <- opp_data %>%
-    ggplot(aes(x = scenario_pt, y = opportunity_cost, fill = opp_color)) +
-    geom_col(width = 0.6) +
-    geom_hline(yintercept = 0, linetype = "dashed", color = "grey40") +
+    ggplot(aes(x = scenario_pt, y = opportunity_cost, fill = opp_direction)) +
+    geom_col(
+      width     = 0.6,
+      colour    = "grey10",
+      linewidth = 0.3
+    ) +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "grey30", linewidth = 0.5) +
     coord_flip() +
     facet_wrap(~ asset_pt, scales = "free_x", ncol = 1) +
     scale_fill_manual(
-      values = c("Favorável" = "#1a6b3c", "Desfavorável" = "#8b1a1a"),
+      values = c("Favorável" = "grey82", "Desfavorável" = "grey30"),
       name   = "Resultado"
     ) +
     scale_y_continuous(labels = function(x) format_brl(x)) +
@@ -287,9 +321,6 @@ generate_figures <- function(annual_consorcio_summary,
   log_info("[viz] Gráfico 6 salvo: fig06_custo_oportunidade")
 
   # ── Gráfico 7: Fluxo de caixa acumulado ────────────────────────────────────
-  # CORREÇÃO 4: adicionar linhas verticais tracejadas no mês de contemplação
-  # para diferenciar visualmente os três cenários de consórcio (que têm mesmo
-  # monthly_cash_flow e portanto curvas acumuladas sobrepostas sem esse recurso)
   if (!is.null(simulation_cashflows) && nrow(simulation_cashflows) > 0) {
 
     cf_data <- simulation_cashflows %>%
@@ -305,7 +336,6 @@ generate_figures <- function(annual_consorcio_summary,
       mutate(cumulative_cf = cumsum(monthly_cash_flow)) %>%
       ungroup()
 
-    # Meses de contemplação por cenário e bem, para as linhas verticais
     contemplation_lines <- simulation_results %>%
       filter(scenario %in% c("consortium_early", "consortium_mid", "consortium_late")) %>%
       mutate(
@@ -316,19 +346,41 @@ generate_figures <- function(annual_consorcio_summary,
       ) %>%
       select(asset_pt, scenario_pt, months_until_acquisition)
 
+    # Pontos de marcador a cada N meses para não poluir o gráfico
+    marker_interval_vehicle <- 10
+    marker_interval_housing <- 30
+    cf_markers <- cf_data %>%
+      mutate(interval = ifelse(as.character(asset_pt) == "Veículo",
+                               marker_interval_vehicle,
+                               marker_interval_housing)) %>%
+      filter(month %% interval == 0)
+
     p7 <- cf_data %>%
-      ggplot(aes(x = month, y = cumulative_cf, color = scenario_pt)) +
-      geom_line(linewidth = 0.8) +
-      # Linhas verticais tracejadas indicando o mês de contemplação de cada cenário
+      ggplot(aes(
+        x        = month,
+        y        = cumulative_cf,
+        linetype = scenario_pt,
+        shape    = scenario_pt
+      )) +
+      geom_line(linewidth = 0.7, color = "grey20") +
+      geom_point(
+        data      = cf_markers,
+        aes(shape = scenario_pt),
+        size      = 2,
+        color     = "grey20",
+        fill      = "white",
+        stroke    = 0.8
+      ) +
       geom_vline(
-        data        = contemplation_lines,
-        aes(xintercept = months_until_acquisition, color = scenario_pt),
-        linetype    = "dashed",
-        linewidth   = 0.5,
-        alpha       = 0.7
+        data      = contemplation_lines,
+        aes(xintercept = months_until_acquisition, linetype = scenario_pt),
+        color     = "grey20",
+        linewidth = 0.4,
+        alpha     = 0.6
       ) +
       facet_wrap(~ asset_pt, scales = "free", ncol = 1) +
-      scale_color_manual(values = palette_scenarios, name = "Cenário") +
+      scale_linetype_manual(values = scenario_linetype, name = "Cenário") +
+      scale_shape_manual(values = scenario_shape, name = "Cenário") +
       scale_y_continuous(labels = function(x) format_brl(x)) +
       labs(
         title    = "Fluxo de caixa acumulado por cenário",
@@ -339,7 +391,10 @@ generate_figures <- function(annual_consorcio_summary,
       ) +
       theme_article() +
       theme(strip.text = element_text(face = "bold", size = 11)) +
-      guides(color = guide_legend(nrow = 2))
+      guides(
+        linetype = guide_legend(nrow = 2),
+        shape    = guide_legend(nrow = 2)
+      )
 
     outputs$graph7 <- save_dual_plot(p7, path(figure_dir, "fig07_fluxo_acumulado"), width = 9, height = 8)
     log_info("[viz] Gráfico 7 salvo: fig07_fluxo_acumulado")
@@ -347,45 +402,161 @@ generate_figures <- function(annual_consorcio_summary,
     log_info("[viz] simulation_cashflows não disponível, Gráfico 7 não gerado")
   }
 
-  # ── Gráfico 8: Painel síntese com patchwork ───────────────────────────────
-  suppressPackageStartupMessages({
-    if (!requireNamespace("patchwork", quietly = TRUE)) {
-      log_info("[viz] Pacote patchwork não disponível, pulando Gráfico 8")
-    }
-  })
+  # ── Tabela 1: Síntese comparativa (gt) ─────────────────────────────────────
+  # Substitui o painel fig08 (patchwork).
+  # Exportada via gtsave() em PNG (300 dpi via zoom=2) e PDF.
+  # Destaque por negrito — sem dependência de cor, adequado para impressão.
+  #
+  # Critérios de negrito por grupo de bem:
+  #   custo_total / vp_custo : menor valor da coluna
+  #   custo_opp              : valor mais favorável (mais negativo, excluindo referência)
+  # ───────────────────────────────────────────────────────────────────────────
 
-  p8 <- (p4 / p5 / p6) +
-    patchwork::plot_annotation(
-      title = "Comparativo de eficiência econômica — veículo e imóvel",
-      theme = theme(
-        plot.title = element_text(face = "bold", size = 15, hjust = 0.5, family = "sans")
-      )
-    )
+  # gt carregado via utils.R
+  tbl_data <- simulation_results %>%
+      mutate(
+        scenario  = factor(scenario, levels = scenario_levels),
+        mecanismo = scenario_labels_pt[as.character(scenario)],
+        bem       = asset_labels_pt[as.character(asset)],
+        custo_total = round(total_cost),
+        vp_custo    = round(present_value_cost),
+        custo_opp   = round(opportunity_cost),
+        meses       = as.integer(months_until_acquisition),
+        is_ref      = scenario == "autonomous_savings"
+      ) %>%
+      arrange(factor(asset, levels = c("vehicle", "housing")), scenario) %>%
+      select(bem, mecanismo, custo_total, vp_custo, custo_opp, meses, is_ref)
 
-  ggsave(
-    filename = path(figure_dir, "fig08_painel_sintese.png"),
-    plot     = p8,
-    width    = 10, height = 18, dpi = 300
-  )
-  tryCatch(
-    ggsave(
-      filename = path(figure_dir, "fig08_painel_sintese.pdf"),
-      plot     = p8,
-      width    = 10, height = 18, device = cairo_pdf
-    ),
-    error = function(e) {
-      ggsave(
-        filename = path(figure_dir, "fig08_painel_sintese.pdf"),
-        plot     = p8,
-        width    = 10, height = 18
+    # Flags de negrito calculados antes da formatação
+    bold_flags <- tbl_data %>%
+      group_by(bem) %>%
+      mutate(
+        bold_total = custo_total == min(custo_total),
+        bold_vp    = vp_custo    == min(vp_custo),
+        bold_opp   = !is_ref & (custo_opp == min(custo_opp[!is_ref]))
+      ) %>%
+      ungroup()
+
+    # Formatar valores para exibição
+    tbl_fmt <- bold_flags %>%
+      mutate(
+        custo_total_fmt = format_brl(custo_total),
+        vp_custo_fmt    = format_brl(vp_custo),
+        custo_opp_fmt   = ifelse(is_ref, "— referência", format_opp(custo_opp)),
+        meses_fmt       = paste0("mês ", meses)
       )
-    }
-  )
-  outputs$graph8 <- list(
-    png = path(figure_dir, "fig08_painel_sintese.png"),
-    pdf = path(figure_dir, "fig08_painel_sintese.pdf")
-  )
-  log_info("[viz] Gráfico 8 salvo: fig08_painel_sintese")
+
+    tbl_gt <- tbl_fmt %>%
+      select(bem, mecanismo, custo_total_fmt, vp_custo_fmt, custo_opp_fmt, meses_fmt) %>%
+      gt(groupname_col = "bem") %>%
+
+      cols_label(
+        mecanismo       = "Mecanismo",
+        custo_total_fmt = "Custo total",
+        vp_custo_fmt    = "Valor presente",
+        custo_opp_fmt   = "Custo de oportunidade",
+        meses_fmt       = "Aquisição"
+      ) %>%
+
+      tab_header(
+        title    = "Comparativo de eficiência econômica",
+        subtitle = "Veículo (R$ 80.000) e imóvel (R$ 300.000)"
+      ) %>%
+
+      tab_footnote(
+        footnote  = paste0(
+          "Custo de oportunidade = valor futuro dos pagamentos − valor futuro do ativo adquirido. ",
+          "Valores negativos indicam resultado favorável ao mecanismo. ",
+          "Acumulação autônoma adotada como referência (custo de oportunidade = 0 por definição). ",
+          "Taxa de desconto: Selic anual média."
+        ),
+        locations = cells_column_labels(columns = custo_opp_fmt)
+      ) %>%
+
+      tab_source_note(
+        source_note = "Fonte: Elaboração própria com dados do BCB — Panorama do Sistema de Consórcios e SGS."
+      ) %>%
+
+      cols_align(align = "left",  columns = mecanismo) %>%
+      cols_align(align = "right", columns = c(custo_total_fmt, vp_custo_fmt,
+                                               custo_opp_fmt, meses_fmt)) %>%
+
+      # Negrito: menor custo total por bem
+      tab_style(
+        style     = cell_text(weight = "bold"),
+        locations = cells_body(
+          columns = custo_total_fmt,
+          rows    = bold_flags$bold_total
+        )
+      ) %>%
+      # Negrito: menor VP por bem
+      tab_style(
+        style     = cell_text(weight = "bold"),
+        locations = cells_body(
+          columns = vp_custo_fmt,
+          rows    = bold_flags$bold_vp
+        )
+      ) %>%
+      # Negrito: custo de oportunidade mais favorável por bem
+      tab_style(
+        style     = cell_text(weight = "bold"),
+        locations = cells_body(
+          columns = custo_opp_fmt,
+          rows    = bold_flags$bold_opp
+        )
+      ) %>%
+
+      # Itálico + cinza na linha de referência
+      tab_style(
+        style     = cell_text(style = "italic", color = "grey50"),
+        locations = cells_body(rows = bold_flags$is_ref)
+      ) %>%
+
+      # Linha separadora acima dos títulos de grupo
+      tab_style(
+        style     = cell_borders(sides = "top", color = "grey30", weight = px(1.5)),
+        locations = cells_row_groups()
+      ) %>%
+
+      opt_table_font(font = list(google_font("Source Sans Pro"), default_fonts())) %>%
+      tab_options(
+        table.font.size                    = px(11),
+        heading.title.font.size            = px(13),
+        heading.subtitle.font.size         = px(11),
+        column_labels.font.weight          = "bold",
+        row_group.font.weight              = "bold",
+        row_group.font.size                = px(12),
+        table.border.top.style             = "none",
+        table.border.bottom.style          = "none",
+        column_labels.border.top.width     = px(1.5),
+        column_labels.border.top.color     = "grey30",
+        column_labels.border.bottom.width  = px(1),
+        column_labels.border.bottom.color  = "grey60",
+        stub.border.style                  = "none",
+        source_notes.font.size             = px(9),
+        footnotes.font.size                = px(9),
+        data_row.padding                   = px(5)
+      )
+
+    png_path <- path(figure_dir, "fig08_sintese_comparativa.png")
+    pdf_path <- path(figure_dir, "fig08_sintese_comparativa.pdf")
+
+    tryCatch({
+      gt::gtsave(tbl_gt, filename = png_path, zoom = 2, expand = 10)
+      log_info("[viz] Tabela 1 salva: fig08_sintese_comparativa.png")
+    }, error = function(e) {
+      log_info(sprintf("[viz] Erro ao salvar PNG da tabela gt: %s", conditionMessage(e)))
+    })
+
+    tryCatch({
+      gt::gtsave(tbl_gt, filename = pdf_path)
+      log_info("[viz] Tabela 1 salva: fig08_sintese_comparativa.pdf")
+    }, error = function(e) {
+      log_info(sprintf("[viz] Erro ao salvar PDF da tabela gt: %s", conditionMessage(e)))
+    })
+
+    outputs$table1 <- list(png = png_path, pdf = pdf_path)
+    log_info("[viz] Tabela 1 concluída: fig08_sintese_comparativa")
 
   invisible(outputs)
 }

@@ -577,3 +577,343 @@
 [2026-03-23 15:09:15] [viz] Gráfico 8 salvo: fig08_painel_sintese
 [2026-03-23 15:09:15] Completed step: Visualization
 [2026-03-23 15:09:15] Pipeline completed successfully.
+[2026-03-23 16:32:26] Starting step: Setup directories
+[2026-03-23 16:32:26] Completed step: Setup directories
+[2026-03-23 16:32:26] Starting step: Ingestion - consorcio datasets
+[2026-03-23 16:32:27] Downloading CKAN dataset from: https://api.bcb.gov.br/dados/serie/bcdata.sgs.27459/dados?formato=csv
+[2026-03-23 16:32:28] Downloading CKAN dataset from: https://api.bcb.gov.br/dados/serie/bcdata.sgs.27487/dados?formato=csv
+[2026-03-23 16:32:28] Downloading CKAN dataset from: https://api.bcb.gov.br/dados/serie/bcdata.sgs.27488/dados?formato=csv
+[2026-03-23 16:32:29] Completed step: Ingestion - consorcio datasets
+[2026-03-23 16:32:29] Starting step: Ingestion - credit (SGS monthly)
+[2026-03-23 16:32:32] Completed step: Ingestion - credit (SGS monthly)
+[2026-03-23 16:32:32] Starting step: Ingestion - SIDRA IPCA
+[2026-03-23 16:32:33] Completed step: Ingestion - SIDRA IPCA
+[2026-03-23 16:32:33] Starting step: Ingestion - manual panorama template
+[2026-03-23 16:32:33] Completed step: Ingestion - manual panorama template
+[2026-03-23 16:32:33] Starting step: Processing - consorcio
+[2026-03-23 16:32:33] [active_quotas] Using value column: valor
+[2026-03-23 16:32:33] [excluded_quotas] Using value column: valor
+[2026-03-23 16:32:33] [exclusion_index] Using value column: valor
+[2026-03-23 16:32:33] Completed step: Processing - consorcio
+[2026-03-23 16:32:33] Starting step: Processing - credit (selic optional)
+[2026-03-23 16:32:33] Completed step: Processing - credit (selic optional)
+[2026-03-23 16:32:33] Starting step: Processing - IPCA
+[2026-03-23 16:32:33] Completed step: Processing - IPCA
+[2026-03-23 16:32:33] Starting step: Processing - manual panorama
+[2026-03-23 16:32:33] Completed step: Processing - manual panorama
+[2026-03-23 16:32:33] Starting step: Transformation - annual consorcio summary
+[2026-03-23 16:32:33] [active_quotas] Rows after annual aggregation: 14
+[2026-03-23 16:32:33] [active_quotas] Columns available: Year, ActiveQuotas
+[2026-03-23 16:32:33] [active_quotas] NA count - Year: 0 | ActiveQuotas: 0
+[2026-03-23 16:32:33] [exclusion_index] Rows after annual aggregation: 8
+[2026-03-23 16:32:33] [exclusion_index] Columns available: Year, ExclusionRate
+[2026-03-23 16:32:33] [exclusion_index] NA count - Year: 0 | ExclusionRate: 0
+[2026-03-23 16:32:33] Completed step: Transformation - annual consorcio summary
+[2026-03-23 16:32:33] Starting step: Transformation - monthly credit parameters
+[2026-03-23 16:32:33] Completed step: Transformation - monthly credit parameters
+[2026-03-23 16:32:33] Starting step: Transformation - macro parameters
+[2026-03-23 16:32:33] Completed step: Transformation - macro parameters
+[2026-03-23 16:32:33] Selic data unavailable; using fallback discount rate 11.75%
+[2026-03-23 16:32:33] Starting step: Simulation
+[2026-03-23 16:32:33] Completed step: Simulation
+[2026-03-23 16:32:33] Starting step: Storage - processed tables
+[2026-03-23 16:32:34] Completed step: Storage - processed tables
+[2026-03-23 16:32:34] Starting step: Visualization
+[2026-03-23 16:32:34] [plot:active_quotas] nrow = 16
+[2026-03-23 16:32:34] [plot:active_quotas] columns = Year, ActiveQuotas, ExclusionRate
+[2026-03-23 16:32:34] [plot:active_quotas] NA counts -> Year=0 | ActiveQuotas=0
+[2026-03-23 16:32:34] [viz] Gráfico 1 salvo: fig01_cotas_ativas
+[2026-03-23 16:32:34] [plot:exclusion_rate] nrow = 16
+[2026-03-23 16:32:34] [plot:exclusion_rate] columns = Year, ActiveQuotas, ExclusionRate
+[2026-03-23 16:32:34] [plot:exclusion_rate] NA counts -> Year=0 | ExclusionRate=6
+[2026-03-23 16:32:35] [viz] Gráfico 2 salvo: fig02_taxa_exclusao
+[2026-03-23 16:32:35] [viz] Gráfico 3 salvo: fig03_parametros
+[2026-03-23 16:32:35] [viz] Gráfico 4 salvo: fig04_custo_total
+[2026-03-23 16:32:36] [viz] Gráfico 5 salvo: fig05_valor_presente
+[2026-03-23 16:32:37] [viz] Gráfico 6 salvo: fig06_custo_oportunidade
+[2026-03-23 16:32:38] [viz] Gráfico 7 salvo: fig07_fluxo_acumulado
+[2026-03-23 16:32:38] ERROR in Visualization: não foi possível encontrar a função "tab_options"
+[2026-03-23 16:34:09] Starting step: Setup directories
+[2026-03-23 16:34:09] Completed step: Setup directories
+[2026-03-23 16:34:09] Starting step: Ingestion - consorcio datasets
+[2026-03-23 16:34:09] Downloading CKAN dataset from: https://api.bcb.gov.br/dados/serie/bcdata.sgs.27459/dados?formato=csv
+[2026-03-23 16:34:10] Downloading CKAN dataset from: https://api.bcb.gov.br/dados/serie/bcdata.sgs.27487/dados?formato=csv
+[2026-03-23 16:34:11] Downloading CKAN dataset from: https://api.bcb.gov.br/dados/serie/bcdata.sgs.27488/dados?formato=csv
+[2026-03-23 16:34:11] Completed step: Ingestion - consorcio datasets
+[2026-03-23 16:34:11] Starting step: Ingestion - credit (SGS monthly)
+[2026-03-23 16:34:14] Completed step: Ingestion - credit (SGS monthly)
+[2026-03-23 16:34:14] Starting step: Ingestion - SIDRA IPCA
+[2026-03-23 16:34:15] Completed step: Ingestion - SIDRA IPCA
+[2026-03-23 16:34:15] Starting step: Ingestion - manual panorama template
+[2026-03-23 16:34:15] Completed step: Ingestion - manual panorama template
+[2026-03-23 16:34:15] Starting step: Processing - consorcio
+[2026-03-23 16:34:15] [active_quotas] Using value column: valor
+[2026-03-23 16:34:15] [excluded_quotas] Using value column: valor
+[2026-03-23 16:34:15] [exclusion_index] Using value column: valor
+[2026-03-23 16:34:15] Completed step: Processing - consorcio
+[2026-03-23 16:34:15] Starting step: Processing - credit (selic optional)
+[2026-03-23 16:34:15] Completed step: Processing - credit (selic optional)
+[2026-03-23 16:34:15] Starting step: Processing - IPCA
+[2026-03-23 16:34:15] Completed step: Processing - IPCA
+[2026-03-23 16:34:15] Starting step: Processing - manual panorama
+[2026-03-23 16:34:15] Completed step: Processing - manual panorama
+[2026-03-23 16:34:15] Starting step: Transformation - annual consorcio summary
+[2026-03-23 16:34:15] [active_quotas] Rows after annual aggregation: 14
+[2026-03-23 16:34:15] [active_quotas] Columns available: Year, ActiveQuotas
+[2026-03-23 16:34:15] [active_quotas] NA count - Year: 0 | ActiveQuotas: 0
+[2026-03-23 16:34:15] [exclusion_index] Rows after annual aggregation: 8
+[2026-03-23 16:34:15] [exclusion_index] Columns available: Year, ExclusionRate
+[2026-03-23 16:34:15] [exclusion_index] NA count - Year: 0 | ExclusionRate: 0
+[2026-03-23 16:34:15] Completed step: Transformation - annual consorcio summary
+[2026-03-23 16:34:15] Starting step: Transformation - monthly credit parameters
+[2026-03-23 16:34:15] Completed step: Transformation - monthly credit parameters
+[2026-03-23 16:34:15] Starting step: Transformation - macro parameters
+[2026-03-23 16:34:15] Completed step: Transformation - macro parameters
+[2026-03-23 16:34:15] Selic data unavailable; using fallback discount rate 11.75%
+[2026-03-23 16:34:15] Starting step: Simulation
+[2026-03-23 16:34:15] Completed step: Simulation
+[2026-03-23 16:34:15] Starting step: Storage - processed tables
+[2026-03-23 16:34:16] Completed step: Storage - processed tables
+[2026-03-23 16:34:16] Starting step: Visualization
+[2026-03-23 16:34:16] [plot:active_quotas] nrow = 16
+[2026-03-23 16:34:16] [plot:active_quotas] columns = Year, ActiveQuotas, ExclusionRate
+[2026-03-23 16:34:16] [plot:active_quotas] NA counts -> Year=0 | ActiveQuotas=0
+[2026-03-23 16:34:16] [viz] Gráfico 1 salvo: fig01_cotas_ativas
+[2026-03-23 16:34:16] [plot:exclusion_rate] nrow = 16
+[2026-03-23 16:34:16] [plot:exclusion_rate] columns = Year, ActiveQuotas, ExclusionRate
+[2026-03-23 16:34:16] [plot:exclusion_rate] NA counts -> Year=0 | ExclusionRate=6
+[2026-03-23 16:34:17] [viz] Gráfico 2 salvo: fig02_taxa_exclusao
+[2026-03-23 16:34:17] [viz] Gráfico 3 salvo: fig03_parametros
+[2026-03-23 16:34:17] [viz] Gráfico 4 salvo: fig04_custo_total
+[2026-03-23 16:34:18] [viz] Gráfico 5 salvo: fig05_valor_presente
+[2026-03-23 16:34:19] [viz] Gráfico 6 salvo: fig06_custo_oportunidade
+[2026-03-23 16:34:20] [viz] Gráfico 7 salvo: fig07_fluxo_acumulado
+[2026-03-23 16:35:13] [viz] Tabela 1 salva: fig08_sintese_comparativa.png
+[2026-03-23 16:35:13] [viz] Tabela 1 salva: fig08_sintese_comparativa.pdf
+[2026-03-23 16:35:13] [viz] Tabela 1 concluída: fig08_sintese_comparativa
+[2026-03-23 16:35:13] Completed step: Visualization
+[2026-03-23 16:35:13] Pipeline completed successfully.
+[2026-03-23 16:45:56] Starting step: Setup directories
+[2026-03-23 16:45:56] Completed step: Setup directories
+[2026-03-23 16:45:56] Starting step: Ingestion - consorcio datasets
+[2026-03-23 16:45:56] Downloading CKAN dataset from: https://api.bcb.gov.br/dados/serie/bcdata.sgs.27459/dados?formato=csv
+[2026-03-23 16:45:58] Downloading CKAN dataset from: https://api.bcb.gov.br/dados/serie/bcdata.sgs.27487/dados?formato=csv
+[2026-03-23 16:45:58] Downloading CKAN dataset from: https://api.bcb.gov.br/dados/serie/bcdata.sgs.27488/dados?formato=csv
+[2026-03-23 16:45:59] Completed step: Ingestion - consorcio datasets
+[2026-03-23 16:45:59] Starting step: Ingestion - credit (SGS monthly)
+[2026-03-23 16:46:02] Completed step: Ingestion - credit (SGS monthly)
+[2026-03-23 16:46:02] Starting step: Ingestion - SIDRA IPCA
+[2026-03-23 16:46:03] Completed step: Ingestion - SIDRA IPCA
+[2026-03-23 16:46:03] Starting step: Ingestion - manual panorama template
+[2026-03-23 16:46:03] Completed step: Ingestion - manual panorama template
+[2026-03-23 16:46:03] Starting step: Processing - consorcio
+[2026-03-23 16:46:04] [active_quotas] Using value column: valor
+[2026-03-23 16:46:04] [excluded_quotas] Using value column: valor
+[2026-03-23 16:46:04] [exclusion_index] Using value column: valor
+[2026-03-23 16:46:04] Completed step: Processing - consorcio
+[2026-03-23 16:46:04] Starting step: Processing - credit (selic optional)
+[2026-03-23 16:46:04] Completed step: Processing - credit (selic optional)
+[2026-03-23 16:46:04] Starting step: Processing - IPCA
+[2026-03-23 16:46:04] Completed step: Processing - IPCA
+[2026-03-23 16:46:04] Starting step: Processing - manual panorama
+[2026-03-23 16:46:04] Completed step: Processing - manual panorama
+[2026-03-23 16:46:04] Starting step: Transformation - annual consorcio summary
+[2026-03-23 16:46:04] [active_quotas] Rows after annual aggregation: 14
+[2026-03-23 16:46:04] [active_quotas] Columns available: Year, ActiveQuotas
+[2026-03-23 16:46:04] [active_quotas] NA count - Year: 0 | ActiveQuotas: 0
+[2026-03-23 16:46:04] [exclusion_index] Rows after annual aggregation: 8
+[2026-03-23 16:46:04] [exclusion_index] Columns available: Year, ExclusionRate
+[2026-03-23 16:46:04] [exclusion_index] NA count - Year: 0 | ExclusionRate: 0
+[2026-03-23 16:46:04] Completed step: Transformation - annual consorcio summary
+[2026-03-23 16:46:04] Starting step: Transformation - monthly credit parameters
+[2026-03-23 16:46:04] Completed step: Transformation - monthly credit parameters
+[2026-03-23 16:46:04] Starting step: Transformation - macro parameters
+[2026-03-23 16:46:04] Completed step: Transformation - macro parameters
+[2026-03-23 16:46:04] Selic data unavailable; using fallback discount rate 11.75%
+[2026-03-23 16:46:04] Starting step: Simulation
+[2026-03-23 16:46:04] Completed step: Simulation
+[2026-03-23 16:46:04] Starting step: Storage - processed tables
+[2026-03-23 16:46:04] Completed step: Storage - processed tables
+[2026-03-23 16:46:04] Starting step: Visualization
+[2026-03-23 16:46:05] [plot:active_quotas] nrow = 16
+[2026-03-23 16:46:05] [plot:active_quotas] columns = Year, ActiveQuotas, ExclusionRate
+[2026-03-23 16:46:05] [plot:active_quotas] NA counts -> Year=0 | ActiveQuotas=0
+[2026-03-23 16:46:06] [viz] Gráfico 1 salvo: fig01_cotas_ativas
+[2026-03-23 16:46:06] [plot:exclusion_rate] nrow = 16
+[2026-03-23 16:46:06] [plot:exclusion_rate] columns = Year, ActiveQuotas, ExclusionRate
+[2026-03-23 16:46:06] [plot:exclusion_rate] NA counts -> Year=0 | ExclusionRate=6
+[2026-03-23 16:46:07] [viz] Gráfico 2 salvo: fig02_taxa_exclusao
+[2026-03-23 16:46:07] [viz] Gráfico 3 salvo: fig03_parametros
+[2026-03-23 16:46:07] ERROR in Visualization: não há nenhum pacote chamado ‘ggpattern’
+[2026-03-23 17:06:32] Starting step: Setup directories
+[2026-03-23 17:06:32] Completed step: Setup directories
+[2026-03-23 17:06:32] Starting step: Ingestion - consorcio datasets
+[2026-03-23 17:06:32] Downloading CKAN dataset from: https://api.bcb.gov.br/dados/serie/bcdata.sgs.27459/dados?formato=csv
+[2026-03-23 17:06:35] Downloading CKAN dataset from: https://api.bcb.gov.br/dados/serie/bcdata.sgs.27487/dados?formato=csv
+[2026-03-23 17:06:36] Downloading CKAN dataset from: https://api.bcb.gov.br/dados/serie/bcdata.sgs.27488/dados?formato=csv
+[2026-03-23 17:06:36] Completed step: Ingestion - consorcio datasets
+[2026-03-23 17:06:36] Starting step: Ingestion - credit (SGS monthly)
+[2026-03-23 17:06:39] Completed step: Ingestion - credit (SGS monthly)
+[2026-03-23 17:06:39] Starting step: Ingestion - SIDRA IPCA
+[2026-03-23 17:06:40] Completed step: Ingestion - SIDRA IPCA
+[2026-03-23 17:06:40] Starting step: Ingestion - manual panorama template
+[2026-03-23 17:06:40] Completed step: Ingestion - manual panorama template
+[2026-03-23 17:06:40] Starting step: Processing - consorcio
+[2026-03-23 17:06:40] [active_quotas] Using value column: valor
+[2026-03-23 17:06:40] [excluded_quotas] Using value column: valor
+[2026-03-23 17:06:40] [exclusion_index] Using value column: valor
+[2026-03-23 17:06:40] Completed step: Processing - consorcio
+[2026-03-23 17:06:40] Starting step: Processing - credit (selic optional)
+[2026-03-23 17:06:41] Completed step: Processing - credit (selic optional)
+[2026-03-23 17:06:41] Starting step: Processing - IPCA
+[2026-03-23 17:06:41] Completed step: Processing - IPCA
+[2026-03-23 17:06:41] Starting step: Processing - manual panorama
+[2026-03-23 17:06:41] Completed step: Processing - manual panorama
+[2026-03-23 17:06:41] Starting step: Transformation - annual consorcio summary
+[2026-03-23 17:06:41] [active_quotas] Rows after annual aggregation: 14
+[2026-03-23 17:06:41] [active_quotas] Columns available: Year, ActiveQuotas
+[2026-03-23 17:06:41] [active_quotas] NA count - Year: 0 | ActiveQuotas: 0
+[2026-03-23 17:06:41] [exclusion_index] Rows after annual aggregation: 8
+[2026-03-23 17:06:41] [exclusion_index] Columns available: Year, ExclusionRate
+[2026-03-23 17:06:41] [exclusion_index] NA count - Year: 0 | ExclusionRate: 0
+[2026-03-23 17:06:41] Completed step: Transformation - annual consorcio summary
+[2026-03-23 17:06:41] Starting step: Transformation - monthly credit parameters
+[2026-03-23 17:06:41] Completed step: Transformation - monthly credit parameters
+[2026-03-23 17:06:41] Starting step: Transformation - macro parameters
+[2026-03-23 17:06:41] Completed step: Transformation - macro parameters
+[2026-03-23 17:06:41] Selic data unavailable; using fallback discount rate 11.75%
+[2026-03-23 17:06:41] Starting step: Simulation
+[2026-03-23 17:06:41] Completed step: Simulation
+[2026-03-23 17:06:41] Starting step: Storage - processed tables
+[2026-03-23 17:06:41] Completed step: Storage - processed tables
+[2026-03-23 17:06:41] Starting step: Visualization
+[2026-03-23 17:06:42] [plot:active_quotas] nrow = 16
+[2026-03-23 17:06:42] [plot:active_quotas] columns = Year, ActiveQuotas, ExclusionRate
+[2026-03-23 17:06:42] [plot:active_quotas] NA counts -> Year=0 | ActiveQuotas=0
+[2026-03-23 17:06:42] [viz] Gráfico 1 salvo: fig01_cotas_ativas
+[2026-03-23 17:06:42] [plot:exclusion_rate] nrow = 16
+[2026-03-23 17:06:42] [plot:exclusion_rate] columns = Year, ActiveQuotas, ExclusionRate
+[2026-03-23 17:06:42] [plot:exclusion_rate] NA counts -> Year=0 | ExclusionRate=6
+[2026-03-23 17:06:43] [viz] Gráfico 2 salvo: fig02_taxa_exclusao
+[2026-03-23 17:06:44] [viz] Gráfico 3 salvo: fig03_parametros
+[2026-03-23 17:06:44] ERROR in Visualization: não há nenhum pacote chamado ‘ggpattern’
+[2026-03-23 17:08:59] Starting step: Setup directories
+[2026-03-23 17:08:59] Completed step: Setup directories
+[2026-03-23 17:08:59] Starting step: Ingestion - consorcio datasets
+[2026-03-23 17:09:00] Downloading CKAN dataset from: https://api.bcb.gov.br/dados/serie/bcdata.sgs.27459/dados?formato=csv
+[2026-03-23 17:09:01] Downloading CKAN dataset from: https://api.bcb.gov.br/dados/serie/bcdata.sgs.27487/dados?formato=csv
+[2026-03-23 17:09:02] Downloading CKAN dataset from: https://api.bcb.gov.br/dados/serie/bcdata.sgs.27488/dados?formato=csv
+[2026-03-23 17:09:02] Completed step: Ingestion - consorcio datasets
+[2026-03-23 17:09:02] Starting step: Ingestion - credit (SGS monthly)
+[2026-03-23 17:09:05] Completed step: Ingestion - credit (SGS monthly)
+[2026-03-23 17:09:05] Starting step: Ingestion - SIDRA IPCA
+[2026-03-23 17:09:06] Completed step: Ingestion - SIDRA IPCA
+[2026-03-23 17:09:06] Starting step: Ingestion - manual panorama template
+[2026-03-23 17:09:06] Completed step: Ingestion - manual panorama template
+[2026-03-23 17:09:06] Starting step: Processing - consorcio
+[2026-03-23 17:09:07] [active_quotas] Using value column: valor
+[2026-03-23 17:09:07] [excluded_quotas] Using value column: valor
+[2026-03-23 17:09:07] [exclusion_index] Using value column: valor
+[2026-03-23 17:09:07] Completed step: Processing - consorcio
+[2026-03-23 17:09:07] Starting step: Processing - credit (selic optional)
+[2026-03-23 17:09:07] Completed step: Processing - credit (selic optional)
+[2026-03-23 17:09:07] Starting step: Processing - IPCA
+[2026-03-23 17:09:07] Completed step: Processing - IPCA
+[2026-03-23 17:09:07] Starting step: Processing - manual panorama
+[2026-03-23 17:09:07] Completed step: Processing - manual panorama
+[2026-03-23 17:09:07] Starting step: Transformation - annual consorcio summary
+[2026-03-23 17:09:07] [active_quotas] Rows after annual aggregation: 14
+[2026-03-23 17:09:07] [active_quotas] Columns available: Year, ActiveQuotas
+[2026-03-23 17:09:07] [active_quotas] NA count - Year: 0 | ActiveQuotas: 0
+[2026-03-23 17:09:07] [exclusion_index] Rows after annual aggregation: 8
+[2026-03-23 17:09:07] [exclusion_index] Columns available: Year, ExclusionRate
+[2026-03-23 17:09:07] [exclusion_index] NA count - Year: 0 | ExclusionRate: 0
+[2026-03-23 17:09:07] Completed step: Transformation - annual consorcio summary
+[2026-03-23 17:09:07] Starting step: Transformation - monthly credit parameters
+[2026-03-23 17:09:07] Completed step: Transformation - monthly credit parameters
+[2026-03-23 17:09:07] Starting step: Transformation - macro parameters
+[2026-03-23 17:09:07] Completed step: Transformation - macro parameters
+[2026-03-23 17:09:07] Selic data unavailable; using fallback discount rate 11.75%
+[2026-03-23 17:09:07] Starting step: Simulation
+[2026-03-23 17:09:07] Completed step: Simulation
+[2026-03-23 17:09:07] Starting step: Storage - processed tables
+[2026-03-23 17:09:08] Completed step: Storage - processed tables
+[2026-03-23 17:09:08] Starting step: Visualization
+[2026-03-23 17:09:08] [plot:active_quotas] nrow = 16
+[2026-03-23 17:09:08] [plot:active_quotas] columns = Year, ActiveQuotas, ExclusionRate
+[2026-03-23 17:09:08] [plot:active_quotas] NA counts -> Year=0 | ActiveQuotas=0
+[2026-03-23 17:09:09] [viz] Gráfico 1 salvo: fig01_cotas_ativas
+[2026-03-23 17:09:09] [plot:exclusion_rate] nrow = 16
+[2026-03-23 17:09:09] [plot:exclusion_rate] columns = Year, ActiveQuotas, ExclusionRate
+[2026-03-23 17:09:09] [plot:exclusion_rate] NA counts -> Year=0 | ExclusionRate=6
+[2026-03-23 17:09:09] [viz] Gráfico 2 salvo: fig02_taxa_exclusao
+[2026-03-23 17:09:10] [viz] Gráfico 3 salvo: fig03_parametros
+[2026-03-23 17:09:11] [viz] Gráfico 4 salvo: fig04_custo_total
+[2026-03-23 17:09:12] [viz] Gráfico 5 salvo: fig05_valor_presente
+[2026-03-23 17:09:14] [viz] Gráfico 6 salvo: fig06_custo_oportunidade
+[2026-03-23 17:09:15] [viz] Gráfico 7 salvo: fig07_fluxo_acumulado
+[2026-03-23 17:09:16] [viz] Tabela 1 salva: fig08_sintese_comparativa.png
+[2026-03-23 17:09:16] [viz] Tabela 1 salva: fig08_sintese_comparativa.pdf
+[2026-03-23 17:09:16] [viz] Tabela 1 concluída: fig08_sintese_comparativa
+[2026-03-23 17:09:16] Completed step: Visualization
+[2026-03-23 17:09:16] Pipeline completed successfully.
+[2026-03-23 17:10:19] Starting step: Setup directories
+[2026-03-23 17:10:19] Completed step: Setup directories
+[2026-03-23 17:10:19] Starting step: Ingestion - consorcio datasets
+[2026-03-23 17:10:19] Downloading CKAN dataset from: https://api.bcb.gov.br/dados/serie/bcdata.sgs.27459/dados?formato=csv
+[2026-03-23 17:10:19] Downloading CKAN dataset from: https://api.bcb.gov.br/dados/serie/bcdata.sgs.27487/dados?formato=csv
+[2026-03-23 17:10:20] Downloading CKAN dataset from: https://api.bcb.gov.br/dados/serie/bcdata.sgs.27488/dados?formato=csv
+[2026-03-23 17:10:20] Completed step: Ingestion - consorcio datasets
+[2026-03-23 17:10:20] Starting step: Ingestion - credit (SGS monthly)
+[2026-03-23 17:10:24] Completed step: Ingestion - credit (SGS monthly)
+[2026-03-23 17:10:24] Starting step: Ingestion - SIDRA IPCA
+[2026-03-23 17:10:24] Completed step: Ingestion - SIDRA IPCA
+[2026-03-23 17:10:24] Starting step: Ingestion - manual panorama template
+[2026-03-23 17:10:24] Completed step: Ingestion - manual panorama template
+[2026-03-23 17:10:24] Starting step: Processing - consorcio
+[2026-03-23 17:10:25] [active_quotas] Using value column: valor
+[2026-03-23 17:10:25] [excluded_quotas] Using value column: valor
+[2026-03-23 17:10:25] [exclusion_index] Using value column: valor
+[2026-03-23 17:10:25] Completed step: Processing - consorcio
+[2026-03-23 17:10:25] Starting step: Processing - credit (selic optional)
+[2026-03-23 17:10:25] Completed step: Processing - credit (selic optional)
+[2026-03-23 17:10:25] Starting step: Processing - IPCA
+[2026-03-23 17:10:25] Completed step: Processing - IPCA
+[2026-03-23 17:10:25] Starting step: Processing - manual panorama
+[2026-03-23 17:10:25] Completed step: Processing - manual panorama
+[2026-03-23 17:10:25] Starting step: Transformation - annual consorcio summary
+[2026-03-23 17:10:25] [active_quotas] Rows after annual aggregation: 14
+[2026-03-23 17:10:25] [active_quotas] Columns available: Year, ActiveQuotas
+[2026-03-23 17:10:25] [active_quotas] NA count - Year: 0 | ActiveQuotas: 0
+[2026-03-23 17:10:25] [exclusion_index] Rows after annual aggregation: 8
+[2026-03-23 17:10:25] [exclusion_index] Columns available: Year, ExclusionRate
+[2026-03-23 17:10:25] [exclusion_index] NA count - Year: 0 | ExclusionRate: 0
+[2026-03-23 17:10:25] Completed step: Transformation - annual consorcio summary
+[2026-03-23 17:10:25] Starting step: Transformation - monthly credit parameters
+[2026-03-23 17:10:25] Completed step: Transformation - monthly credit parameters
+[2026-03-23 17:10:25] Starting step: Transformation - macro parameters
+[2026-03-23 17:10:25] Completed step: Transformation - macro parameters
+[2026-03-23 17:10:25] Selic data unavailable; using fallback discount rate 11.75%
+[2026-03-23 17:10:25] Starting step: Simulation
+[2026-03-23 17:10:25] Completed step: Simulation
+[2026-03-23 17:10:25] Starting step: Storage - processed tables
+[2026-03-23 17:10:26] Completed step: Storage - processed tables
+[2026-03-23 17:10:26] Starting step: Visualization
+[2026-03-23 17:10:26] [plot:active_quotas] nrow = 16
+[2026-03-23 17:10:26] [plot:active_quotas] columns = Year, ActiveQuotas, ExclusionRate
+[2026-03-23 17:10:26] [plot:active_quotas] NA counts -> Year=0 | ActiveQuotas=0
+[2026-03-23 17:10:27] [viz] Gráfico 1 salvo: fig01_cotas_ativas
+[2026-03-23 17:10:27] [plot:exclusion_rate] nrow = 16
+[2026-03-23 17:10:27] [plot:exclusion_rate] columns = Year, ActiveQuotas, ExclusionRate
+[2026-03-23 17:10:27] [plot:exclusion_rate] NA counts -> Year=0 | ExclusionRate=6
+[2026-03-23 17:10:28] [viz] Gráfico 2 salvo: fig02_taxa_exclusao
+[2026-03-23 17:10:28] [viz] Gráfico 3 salvo: fig03_parametros
+[2026-03-23 17:10:29] [viz] Gráfico 4 salvo: fig04_custo_total
+[2026-03-23 17:10:30] [viz] Gráfico 5 salvo: fig05_valor_presente
+[2026-03-23 17:10:31] [viz] Gráfico 6 salvo: fig06_custo_oportunidade
+[2026-03-23 17:10:32] [viz] Gráfico 7 salvo: fig07_fluxo_acumulado
+[2026-03-23 17:10:34] [viz] Tabela 1 salva: fig08_sintese_comparativa.png
+[2026-03-23 17:10:34] [viz] Tabela 1 salva: fig08_sintese_comparativa.pdf
+[2026-03-23 17:10:34] [viz] Tabela 1 concluída: fig08_sintese_comparativa
+[2026-03-23 17:10:34] Completed step: Visualization
+[2026-03-23 17:10:34] Pipeline completed successfully.

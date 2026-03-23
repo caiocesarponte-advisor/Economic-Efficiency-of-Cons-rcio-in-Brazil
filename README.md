@@ -33,7 +33,9 @@ install.packages(c(
   "sidrar",
   "rbcb",
   "fs",
-  "here"
+  "here",
+  "gt",
+  "ggpattern"
 ))
 ```
 

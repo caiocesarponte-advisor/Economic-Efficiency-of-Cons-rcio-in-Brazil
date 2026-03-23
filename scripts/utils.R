@@ -15,6 +15,7 @@ suppressPackageStartupMessages({
   library(httr2)
   library(rbcb)
   library(sidrar)
+  library(gt)
 })
 
 log_info <- function(message, log_file = path("logs", "pipeline.log")) {
