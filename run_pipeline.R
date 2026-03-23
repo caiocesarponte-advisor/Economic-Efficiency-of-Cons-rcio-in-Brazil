@@ -109,6 +109,7 @@ safe_run("Visualization", function() {
     monthly_credit_parameters = monthly_credit_parameters,
     manual_panorama_series = manual_panorama,
     simulation_results = simulation_outputs$simulation_results,
+    simulation_cashflows = simulation_outputs$simulation_cashflows,
     base_dir = "."
   )
   TRUE

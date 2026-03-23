@@ -109,23 +109,3 @@ Sugestao de fluxo:
 3. Estruture o texto seguindo o modelo IMRAD adaptado (Introducao, Referencial Teorico, Trabalhos Correlatos, Metodologia, Resultados, Conclusao).
 
 Os diretorios `sections/` e `tables/` existem no repositorio para voce organizar conteudo/trechos do manuscrito (quando voce desejar incorporar no Overleaf).
-
----
-
-# Usando o agente `consorcio-eficiencia-pesquisa`
-
-Este projeto inclui uma skill para apoiar a redacao e a organizacao metodologica do estudo.
-
-Use quando quiser:
-
-- estruturar Metodologia e Resultados com rigor metodologico e linguagem academica em portugues (3a pessoa);
-- pedir simulacoes (VPL, custo de oportunidade, cenarios de contemplacao);
-- listar e validar quais series/parametros precisam ser coletados (BCB SGS e IBGE SIDRA);
-- revisar ou montar trechos ABNT/LaTeX (abnTeX2) com rastreabilidade de fontes.
-
-Exemplos de prompts prontos (copie e ajuste):
-
-- "Escreva a Metodologia ABNT (abnTeX2) comparando consorcio, financiamento bancario e poupanca para o Caso A (imovel) com valor de R$ 300.000, destacando VPL e custo de oportunidade, e inclua a lista de fontes que serao citadas."
-- "Monte uma simulacao em R com tres cenarios de contemplacao (inicial/intermediaria/tardia) e descreva como gerar graficos PDF/PNG prontos para LaTeX."
-- "Liste quais series do BCB SGS e quais dados do IBGE (SIDRA) sao necessarios para calcular taxas, prazos e IPCA para o estudo."
-
